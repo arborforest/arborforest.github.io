@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arbor: tu curadora de fotos para iPhone, iPad y Mac</title>
+<meta name="description" content="Arbor ordena tus capturas de pantalla y fotos en iPhone, iPad y Mac. Lee cada una, le pone un nombre que reconocerás y la archiva donde la volverás a encontrar.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151614" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="Arbor: tu curadora de fotos">
+<meta property="og:description" content="Agrega tus fotos. Arbor las ordena, les pone nombre y las archiva. Para iPhone, iPad y Mac.">
+<meta property="og:image" content="https://arborforest.github.io/img/share.png">
+<meta property="og:url" content="https://arborforest.github.io/es/">
+<link rel="icon" href="../img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://arborforest.github.io/">
+<link rel="stylesheet" href="../fonts/fonts.css">
+<style>
+/* Layout: Arbor's home page itself, full width. Motion lives in the page (a drifting color wash, a moving strip of
+   pictures, tabs that switch by themselves, sliding feature cards, a name that types itself, scroll reveals).
+   Apple's device frames stay still and straight, as Apple's marketing rules require. A small pill tries colors, fonts, dark. */
+:root {
+  --bg:#ffffff; --fg:#1d1c1a; --muted:#66625b; --line:#dedbd5; --green:#31573D; --gold:#B57A26; --on:#ffffff;
+  --apple:-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#141513; --fg:#ecebe7; --muted:#a39e96; --line:#34352f; --green:#8fc59f; --gold:#e0ad5e; --on:#141513; color-scheme:dark } }
+:root[data-theme="dark"] { --bg:#141513; --fg:#ecebe7; --muted:#a39e96; --line:#34352f; --green:#8fc59f; --gold:#e0ad5e; --on:#141513; color-scheme:dark }
+body { background:var(--bg); color:var(--fg); margin:0; }
+button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+.pill { position:fixed; right:max(16px, env(safe-area-inset-right, 0px)); bottom:calc(16px + env(safe-area-inset-bottom, 0px)); z-index:20; display:flex; flex-wrap:wrap; gap:8px; padding:8px; border-radius:14px; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(10px); border:1px solid var(--line); box-shadow:0 8px 24px rgba(0,0,0,.12); max-width:calc(100vw - 32px); font-family:var(--apple); }
+.seg { display:flex; flex-wrap:wrap; gap:4px; }
+.seg button { font:inherit; font-size:.8rem; padding:4px 9px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--fg); cursor:pointer; }
+.seg button[aria-pressed="true"] { background:var(--green); border-color:var(--green); color:var(--on); }
+
+/* ===== The website ===== */
+.site { --s-bg:#ffffff; --s-fg:#1d1c1a; --s-muted:#5f5b55; --s-line:#e6e3dd; --s-head:#1d1c1a; --s-mark:#31573D; --s-gold:#D1953E;
+  --s-btn:#D1953E; --s-btntext:#1d1c1a; --s-panel:#f6f4ef; --s-panel2:#eef3ec; --s-wash1:#e9f1e7; --s-wash2:#fbefdc; --s-card:#ffffff;
+  --s-hfont:"Source Serif 4", Georgia, serif; --s-bfont:"Source Serif 4", Georgia, serif;
+  background:var(--s-bg); color:var(--s-fg); font-family:var(--s-bfont); font-size:17px; line-height:1.6; overflow-x:clip; container-type:inline-size; }
+.site.c-a { --s-head:#31573D; --s-btn:#31573D; --s-btntext:#fff; }
+.site.c-b { --s-bg:#EEF3EC; --s-head:#31573D; --s-btn:#31573D; --s-btntext:#fff; --s-panel:#ffffff; --s-panel2:#ffffff; --s-card:#ffffff; --s-line:#d6e0d3; --s-wash1:#dbe9d6; --s-wash2:#f7ecd8; --s-muted:#4d5a50; }
+.site.c-b.dark { --s-bg:#121a14; --s-panel:#1c271f; --s-panel2:#1c271f; --s-card:#1c271f; --s-line:#2c3a2f; --s-wash1:#1d3123; --s-wash2:#2a2418; }
+.site.dark { --s-bg:#151614; --s-fg:#ecebe7; --s-muted:#a7a29a; --s-line:#33342f; --s-head:#f1efe9; --s-mark:#a9d3b5; --s-gold:#e0ad5e; --s-btn:#e0ad5e; --s-btntext:#151614; --s-panel:#1e201c; --s-panel2:#1a221c; --s-wash1:#1b2a1f; --s-wash2:#2a2216; --s-card:#1e201c; }
+.site.c-a.dark, .site.c-b.dark { --s-head:#a9d3b5; --s-btn:#8fc59f; --s-btntext:#10170f; }
+.site.f-a { --s-bfont:-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+.site.f-c { --s-bfont:"Source Sans 3", "Helvetica Neue", Arial, sans-serif; }
+.site h2, .site h3 { font-family:var(--s-hfont); font-weight:600; color:var(--s-head); margin:0; text-wrap:balance; }
+.site p { margin:0; }
+.in { max-width:1160px; margin:0 auto; padding-left:max(40px, env(safe-area-inset-left, 0px)); padding-right:max(40px, env(safe-area-inset-right, 0px)); }
+.nav { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-block:18px; position:relative; z-index:2; }
+.brand { display:flex; align-items:center; text-decoration:none; } .lockup { height:40px; width:auto; display:block; } .lg { fill:#31573D; } .lo { fill:#D1953E; } .site.dark .lg { fill:#a9d3b5; } .site.dark .lo { fill:#e0ad5e; }
+.links { display:flex; gap:24px; font-size:.95rem; align-items:center; }
+.links a { color:var(--s-muted); text-decoration:none; } .links a:hover { color:var(--s-fg); }
+.links .lang { border:1px solid var(--s-line); border-radius:8px; padding:3px 10px; }
+
+/* Hero with a slowly drifting color wash (PDF Expert style) */
+.top { position:relative; isolation:isolate; }
+.wash { position:absolute; inset:0 0 18% 0; z-index:-1; overflow:hidden; }
+.wash i { position:absolute; width:62vmax; height:62vmax; border-radius:50%; filter:blur(70px); opacity:.9; }
+.wash i:nth-child(1) { background:var(--s-wash1); left:-12%; top:-30%; }
+.wash i:nth-child(2) { background:var(--s-wash2); right:-14%; top:-24%; }
+.wash i:nth-child(3) { background:var(--s-wash1); left:30%; top:20%; width:44vmax; height:44vmax; opacity:.6; }
+.wash::after { content:""; position:absolute; inset:auto 0 0 0; height:40%; background:linear-gradient(transparent, var(--s-bg)); }
+.hero { text-align:center; display:flex; flex-direction:column; align-items:center; gap:14px; padding-block:46px 10px; }
+.for { font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; font-weight:600; color:var(--s-mark); }
+.h1 { font-size:3.6rem; line-height:1.05; letter-spacing:-.012em; max-width:16ch; }
+.h1 span { display:inline-block; }
+.sub { font-size:1.2rem; color:var(--s-muted); max-width:46ch; text-wrap:balance; }
+.btns { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:6px; }
+.btn { font:inherit; font-size:1rem; font-weight:600; border-radius:10px; padding:12px 22px; border:1px solid var(--s-btn); background:var(--s-btn); color:var(--s-btntext); text-decoration:none; cursor:pointer; }
+.btn.ghost { background:transparent; color:var(--s-fg); border-color:var(--s-line); font-weight:400; }
+.small { font-size:.86rem; color:var(--s-muted); }
+
+/* Apple's own device frames, straight on, side by side, true relative size, never moved or overlapped */
+.devices { display:flex; align-items:flex-end; justify-content:center; gap:2.2%; max-width:1080px; margin:40px auto 0; padding-inline:24px; }
+.dev { position:relative; flex:none; }
+.dev .frame { position:relative; z-index:2; display:block; width:100%; height:auto; pointer-events:none; }
+.dev .screen { position:absolute; z-index:1; overflow:hidden; background:#fff; }
+.dev.iphone .screen { border-radius:13% / 6%; } .dev.ipad .screen { border-radius:4% / 3%; } .dev.ipadl .screen { border-radius:3% / 4%; } .dev.duo .screen { border-radius:5% / 3.5%; } .dev.mac .screen { border-radius:1.5% 1.5% 0 0 / 2.3% 2.3% 0 0; }
+.devices .dev.mac { width:50%; } .devices .dev.ipadl { width:36.5%; } .dev.mac .screen { left:9.294%; top:9.478%; width:81.356%; height:81.043%; }
+.devices .dev.ipad { width:29.5%; } .dev.ipad .screen { left:9.804%; top:7.246%; width:80.343%; height:85.507%; }
+.devices .dev.iphone { width:10.6%; } .dev.iphone .screen { left:5.333%; top:2.5%; width:89.333%; height:95%; }
+.dev.ipadl .screen { left:7.246%; top:9.804%; width:85.507%; height:80.392%; }
+.dev.mini .screen { left:5.077%; top:7.494%; width:89.846%; height:85.011%; border-radius:3% / 4.5%; }
+.dev.minip .screen { left:7.494%; top:5.077%; width:85.011%; height:89.846%; border-radius:4.5% / 3%; }
+.dev.neo .screen { left:12.647%; top:14.26%; width:74.706%; height:71.48%; }
+.dev.pro .screen { left:10.882%; top:11.449%; width:78.235%; height:77.102%; }
+.dev.imac .screen { left:2.962%; top:3.752%; width:94.077%; height:62.116%; }
+.dev.duo .screen { left:5.340%; top:3.880%; width:89.319%; height:92.240%; }
+.screen img { width:100%; height:100%; object-fit:cover; object-position:top center; display:block; background:#fff; }
+.screen .slide { position:absolute; inset:0; opacity:0; transition:opacity .9s ease; }
+.screen .slide.on { opacity:1; }
+.coming { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center; padding:8%; font-family:var(--apple); font-size:.78rem; line-height:1.35; color:#77736c; background:#f4f3ef; }
+.coming br { display:none; } .coming i { font-size:.85em; opacity:.75; }
+.standin { position:absolute; left:8px; bottom:8px; z-index:3; font-family:var(--apple); font-size:.66rem; background:rgba(29,28,26,.82); color:#fff; border-radius:5px; padding:2px 7px; }
+
+.devcaps { display:flex; justify-content:center; gap:2.2%; max-width:1080px; margin:18px auto 0; padding-inline:24px; text-align:center; }
+.devcaps > div { flex:none; display:flex; flex-direction:column; gap:2px; }
+.devcaps .cap-ipad { width:36.5%; } .devcaps .cap-mac { width:50%; } .devcaps .cap-iphone { width:10.6%; }
+.devcaps b { font-family:var(--s-hfont); font-size:1.25rem; font-weight:600; color:var(--s-fg); }
+.devcaps span { color:var(--s-muted); font-size:.92rem; }
+.syncline { text-align:center; color:var(--s-muted); font-size:.95rem; margin:14px auto 0 !important; max-width:60ch; padding-inline:20px; }
+/* Proof line */
+.proof { display:flex; flex-wrap:wrap; justify-content:center; gap:10px 36px; padding-block:34px 0; color:var(--s-muted); }
+.proof span { display:flex; align-items:center; gap:8px; } .proof i { width:6px; height:6px; border-radius:50%; background:var(--s-gold); display:block; }
+
+/* Moving strip of real pictures */
+.strip { margin-top:64px; overflow:hidden; mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.strip-cap { text-align:center; color:var(--s-muted); font-size:.95rem; margin-bottom:16px; }
+.track { display:flex; gap:16px; width:max-content; }
+.track figure { margin:0; height:190px; border-radius:12px; overflow:hidden; flex:none; box-shadow:0 8px 24px -12px rgba(0,0,0,.25); }
+.track img { height:100%; width:auto; display:block; }
+.track.two { margin-top:16px; }
+
+.sec { padding-block:96px; }
+.sec-head { text-align:center; display:flex; flex-direction:column; gap:10px; align-items:center; margin-bottom:36px; }
+.sec-head h2 { font-size:2.6rem; line-height:1.1; max-width:20ch; }
+.sec-head p { color:var(--s-muted); font-size:1.15rem; max-width:50ch; }
+
+/* How it works, with a name that types itself */
+.how { list-style:none; margin:0 auto; padding:0; display:grid; grid-template-columns:repeat(5, 1fr); gap:22px; }
+.how li { display:flex; flex-direction:column; gap:8px; border-top:2px solid var(--s-line); padding-top:16px; position:relative; }
+.how li::before { content:""; position:absolute; left:0; top:-2px; height:2px; width:0; background:var(--s-gold); transition:width 1.2s ease; }
+.how li.on::before { width:100%; }
+.how .n { font-family:var(--s-hfont); font-size:1.5rem; font-weight:600; color:var(--s-gold); line-height:1; }
+.how b { font-family:var(--s-hfont); font-size:1.2rem; font-weight:600; color:var(--s-fg); }
+.how p { color:var(--s-muted); font-size:.98rem; }
+.rename { margin:42px auto 0; max-width:680px; display:flex; align-items:center; gap:22px; background:var(--s-card); border:1px solid var(--s-line); border-radius:18px; padding:16px; box-shadow:0 14px 34px -18px rgba(0,0,0,.25); }
+.rename img { width:110px; height:110px; object-fit:cover; border-radius:12px; flex:none; }
+.rename .names { position:relative; flex:1; min-width:0; }
+.rename .old { position:relative; display:inline-block; font-family:var(--apple); font-size:1.35rem; color:var(--s-fg); transition:opacity .45s ease, transform .45s ease, filter .45s ease; }
+.rename .old svg { position:absolute; left:-6%; top:50%; width:112%; height:1.9em; transform:translateY(-50%); overflow:visible; pointer-events:none; }
+.rename .old path { fill:none; stroke:var(--s-fg); stroke-opacity:.82; stroke-width:4.2; stroke-linecap:round; stroke-linejoin:round; }
+.rename.gone .old { opacity:0; transform:scale(.9) translateY(-4px); filter:blur(3px); }
+.rename .new { position:relative; display:inline-block; font-family:var(--s-hfont); font-size:1.7rem; font-weight:600; color:var(--s-head); line-height:1.25; margin-top:4px; clip-path:inset(0 100% 0 0); }
+.rename.write .new { animation:write 1.3s cubic-bezier(.45,.05,.4,1) forwards; }
+@keyframes write { to { clip-path:inset(0 0 0 0); } }
+.rename .new svg { position:absolute; left:0; bottom:-.32em; width:100%; height:.5em; overflow:visible; }
+.rename .new svg path { fill:none; stroke:var(--s-gold); stroke-width:3; stroke-linecap:round; stroke-dasharray:240; stroke-dashoffset:240; }
+.rename.write .new svg path { animation:under .6s 1.25s ease-out forwards; }
+@keyframes under { to { stroke-dashoffset:0; } }
+.rename .chip { display:inline-flex; gap:6px; margin-top:10px; font-family:var(--apple); font-size:.88rem; padding:5px 12px; border-radius:999px; background:var(--s-panel2); color:var(--s-mark); opacity:0; transform:translateY(6px); transition:opacity .4s ease, transform .4s ease; }
+.rename .chip.on { opacity:1; transform:none; }
+.rename .tag { font-family:var(--apple); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--s-muted); }
+@keyframes blink { 50% { opacity:0; } }
+
+/* Device tabs that switch by themselves, with a progress line */
+.tabs { display:flex; justify-content:center; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
+.tab { position:relative; overflow:hidden; font:inherit; font-size:.97rem; padding:8px 18px; border-radius:999px; border:1px solid var(--s-line); background:transparent; color:var(--s-muted); cursor:pointer; }
+.tab[aria-selected="true"] { color:var(--s-fg); border-color:var(--s-fg); }
+.tab .bar { position:absolute; left:0; bottom:0; height:2px; width:0; background:var(--s-gold); }
+.tab[aria-selected="true"] .bar.run { animation:fill 6s linear forwards; }
+@keyframes fill { to { width:100%; } }
+.site .tabtext { text-align:center; color:var(--s-muted); max-width:52ch; margin:0 auto 26px; min-height:3.2em; }
+.tabstage { position:relative; display:flex; justify-content:center; align-items:flex-end; min-height:200px; }
+.tabstage .dev { animation:rise .6s cubic-bezier(.2,.7,.2,1) both; }
+.tabstage { gap:3%; align-items:flex-end; } .tabstage .dev.imac { width:min(560px, 56%); } .tabstage .dev.mac { width:min(460px, 41%); } .tabstage .dev.ipad { width:min(300px, 31%); } .tabstage .dev.ipadl { width:min(520px, 54%); } .tabstage .dev.iphone { width:min(200px, 22%); } .tabstage .dev.duo { width:min(320px, 36%); }
+@keyframes rise { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:none; } }
+
+.trio { display:grid; grid-template-columns:48fr 35fr 10.2fr; grid-template-rows:auto auto; column-gap:3.4%; max-width:1100px; margin:0 auto; }
+.trio figure { margin:0; display:grid; grid-row:span 2; grid-template-rows:subgrid; justify-items:center; row-gap:20px; }
+.trio .dev { width:100%; align-self:end; } .trio .tphone .dev { width:62%; }
+.trio figcaption { text-align:center; display:flex; flex-direction:column; gap:2px; align-self:start; white-space:nowrap; }
+.trio figcaption b { font-family:var(--s-hfont); font-size:1.5rem; font-weight:600; color:var(--s-fg); }
+.trio figcaption span { color:var(--s-muted); }
+.show-cap { text-align:center; font-family:var(--s-hfont); font-size:2rem; line-height:1.25; color:var(--s-head); max-width:28ch; margin:0 auto 34px !important; text-wrap:balance; }
+.showrow { display:flex; align-items:flex-end; gap:56px; overflow-x:auto; scroll-snap-type:x mandatory; scroll-padding-inline:8vw; padding:20px 8vw 28px; scrollbar-width:none; }
+.showrow::-webkit-scrollbar { display:none; }
+.sitem { flex:none; scroll-snap-align:center; height:360px; display:flex; align-items:flex-end; }
+.sitem .dev { height:100%; width:auto; } .sitem .dev .frame { height:100%; width:auto; }
+.sitem.s-iphone { height:300px; } .sitem.s-mini { height:250px; } .sitem.s-ipadl { height:300px; } .sitem.s-ipad { height:360px; } .sitem.s-minip { height:310px; }
+.showrow:focus-visible { outline:2px solid var(--s-gold); outline-offset:-2px; }
+/* Feature cards that slide sideways (Paste style) */
+.carousel { position:relative; }
+.cards { display:flex; gap:22px; transition:transform .8s cubic-bezier(.2,.7,.2,1); will-change:transform; }
+.card { flex:0 0 min(560px, 82%); background:var(--s-panel); border-radius:22px; padding:28px; display:flex; flex-direction:column; gap:16px; }
+.card:nth-child(even) { background:var(--s-panel2); }
+.card h3 { font-size:1.6rem; line-height:1.15; }
+.card p { color:var(--s-muted); }
+.card .shot { border-radius:12px; overflow:hidden; background:#fff; height:300px; box-shadow:0 14px 30px -16px rgba(0,0,0,.3); position:relative; }
+.card .shot img { width:100%; height:100%; object-fit:contain; object-position:center; display:block; padding:10px; box-sizing:border-box; }
+.cdev { display:flex; justify-content:center; align-items:center; height:300px; padding:14px 0; box-sizing:border-box; border-radius:14px; background:radial-gradient(closest-side, color-mix(in srgb, var(--s-bg) 70%, transparent), transparent); }
+.cdev .dev { height:100%; width:auto; flex:none; } .cdev .dev .frame { height:100%; width:auto; }
+.plus { align-self:flex-start; font-family:var(--apple); font-size:.74rem; font-weight:600; letter-spacing:.05em; color:var(--s-gold); border:1px solid var(--s-gold); border-radius:999px; padding:2px 10px; }
+.cnav { display:flex; justify-content:center; align-items:center; gap:14px; margin-top:24px; }
+.cnav button.arrow { font:inherit; width:40px; height:40px; border-radius:50%; border:1px solid var(--s-line); background:var(--s-bg); color:var(--s-fg); cursor:pointer; font-size:1.1rem; }
+.dots { display:flex; gap:8px; } .dots button { width:8px; height:8px; border-radius:99px; border:0; padding:0; background:var(--s-line); cursor:pointer; transition:width .3s ease, background .3s ease; }
+.dots button[aria-current="true"] { width:26px; background:var(--s-gold); }
+
+/* Learning: the star chart stays pinned while three lines change as you scroll */
+.learnmock { background:var(--s-card); border:1px solid var(--s-line); border-radius:22px; padding:26px; box-shadow:0 24px 60px -30px rgba(0,0,0,.35); }
+.learnmock .lh { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.learnmock .lh b { font-family:Georgia, serif; font-size:1.6rem; font-weight:400; color:var(--s-fg); }
+.learnmock .lh span { font-family:Georgia, serif; font-size:.9rem; color:var(--s-muted); font-style:italic; }
+.lgrid { display:grid; grid-template-columns:minmax(0, 1.55fr) minmax(0, 1fr); gap:24px; align-items:start; font-family:Georgia, serif; }
+.lgrid canvas { width:100%; aspect-ratio:1.45; display:block; color:var(--s-fg); cursor:pointer; }
+.lhint { text-align:center; color:var(--s-muted); font-size:.85rem; margin-top:8px; }
+.times { display:flex; justify-content:center; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.times button { font-family:Georgia, serif; font-size:.8rem; padding:3px 11px; border-radius:999px; border:1px solid color-mix(in srgb, var(--s-fg) 30%, transparent); background:transparent; color:var(--s-muted); cursor:pointer; }
+.times button[aria-pressed="true"] { color:var(--s-fg); border-color:var(--s-fg); }
+.lside { display:flex; flex-direction:column; gap:12px; color:var(--s-fg); }
+.lpanel { border:1px solid color-mix(in srgb, var(--s-fg) 35%, transparent); border-radius:14px; padding:14px 16px; animation:panelIn .35s ease both; }
+@keyframes panelIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+.lpanel .ph { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.lpanel .ph b { font-size:1.2rem; font-weight:400; }
+.lpanel .ph button { font:inherit; font-size:.9rem; background:none; border:0; color:var(--s-muted); cursor:pointer; }
+.lpanel .sub { color:var(--s-muted); font-size:.92rem; margin:2px 0 8px; }
+.lpanel .row { display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-top:1px solid var(--s-line); font-size:.95rem; }
+.lpanel .row span:last-child { color:var(--s-muted); white-space:nowrap; }
+.lpanel .row span:last-child::after { content:" \203A"; }
+.lpanel .br { font-size:.85rem; color:var(--s-muted); margin-top:8px; }
+.lside h4 { font-size:1.2rem; font-weight:400; margin:4px 0 0; }
+.lside .exp { color:var(--s-muted); font-size:.92rem; line-height:1.45; }
+.lside .best { font-size:.95rem; line-height:1.45; transition:opacity .4s ease; }
+.lstats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.lstats div { border:1px solid var(--s-line); border-radius:10px; padding:8px 10px; }
+.lstats b { display:block; font-size:1.25rem; font-weight:400; font-variant-numeric:tabular-nums; }
+.lstats span { font-size:.8rem; color:var(--s-muted); }
+.lfirst { border:1px dashed var(--s-line); border-radius:10px; padding:8px 10px; font-size:.9rem; }
+.lfirst span { display:block; color:var(--s-muted); font-size:.85rem; }
+
+.private { display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; }
+.private div { border-top:2px solid var(--s-mark); padding-top:14px; }
+.private b { font-family:var(--s-hfont); font-size:1.2rem; font-weight:600; display:block; margin-bottom:4px; }
+.private p { color:var(--s-muted); }
+.plans { display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:860px; margin:0 auto; }
+.plan { background:var(--s-card); border:1px solid var(--s-line); border-radius:18px; padding:28px; display:flex; flex-direction:column; gap:10px; transition:transform .3s ease, box-shadow .3s ease; }
+.plan:hover { transform:translateY(-4px); box-shadow:0 18px 40px -22px rgba(0,0,0,.3); }
+.plan.plusc { border-color:var(--s-gold); position:relative; }
+.trial { position:absolute; top:-12px; right:20px; font-family:var(--apple); font-size:.8rem; font-weight:600; background:var(--s-gold); color:#1d1c1a; border-radius:999px; padding:4px 12px; }
+.plan h3 { font-size:1.6rem; } .price b { font-family:var(--s-hfont); font-size:1.9rem; font-weight:600; }
+.plan ul { margin:6px 0 0; padding-left:1.1em; display:flex; flex-direction:column; gap:6px; }
+.site .fine { font-size:.85rem; color:var(--s-muted); text-align:center; max-width:70ch; margin:18px auto 0; }
+.qs { max-width:1040px; margin:0 auto; columns:2 420px; column-gap:44px; }
+.qs details { border-bottom:1px solid var(--s-line); padding-block:11px; break-inside:avoid; }
+.qs summary { cursor:pointer; font-family:var(--s-hfont); font-size:1rem; font-weight:600; list-style:none; display:flex; justify-content:space-between; gap:12px; }
+.qs summary::after { content:"+"; color:var(--s-gold); transition:transform .3s ease; } .qs details[open] summary::after { transform:rotate(45deg); }
+.qs details p { color:var(--s-muted); margin-top:6px; font-size:.95rem; }
+.end { text-align:center; display:flex; flex-direction:column; align-items:center; gap:14px; padding-block:96px; position:relative; isolation:isolate; overflow:hidden; }
+.end h2 { font-size:2.6rem; }
+.foot { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:18px 40px; padding-block:40px 28px; font-size:.92rem; color:var(--s-muted); border-top:1px solid var(--s-line); }
+.fcol { display:flex; flex-direction:column; gap:8px; } .fcol b { font-family:var(--apple); font-size:.75rem; letter-spacing:.1em; text-transform:uppercase; color:var(--s-fg); margin-bottom:2px; }
+.fcol a { color:var(--s-muted); text-decoration:none; } .fcol a:hover { color:var(--s-fg); }
+.soon { font-style:normal; font-family:var(--apple); font-size:.72rem; color:var(--s-gold); border:1px solid var(--s-gold); border-radius:999px; padding:1px 8px; margin-left:6px; white-space:nowrap; }
+.fine2 { grid-column:1 / -1; font-size:.8rem; color:var(--s-muted); margin-top:10px !important; }
+
+
+/* Hook: the screenshot you forgot, with lines that change by themselves */
+.hook { text-align:center; display:flex; flex-direction:column; align-items:center; gap:14px; padding-block:90px 30px; }
+.hook-q { font-family:var(--s-hfont); font-weight:600; font-size:2.8rem; line-height:1.1; color:var(--s-head); text-wrap:balance; }
+.hook-rot { position:relative; height:2.2em; width:100%; font-family:var(--s-hfont); font-size:1.6rem; color:var(--s-gold); }
+.hook-rot span { position:absolute; inset:0; opacity:0; transform:translateY(14px); transition:opacity .6s ease, transform .6s ease; }
+.hook-rot span.on { opacity:1; transform:none; }
+.hook-p { color:var(--s-fg); font-size:1.55rem; line-height:1.4; max-width:34ch; font-family:var(--s-hfont); text-wrap:balance; }
+.hook-p .w { opacity:.18; transition:opacity .25s linear; }
+.hook-p .w.lit { opacity:1; }
+.hook-plus { display:flex; align-items:center; gap:10px; color:var(--s-muted); font-size:.98rem; }
+/* Waitlist sheet */
+.wl-back { position:fixed; inset:0; z-index:40; background:rgba(20,22,20,.45); display:flex; align-items:center; justify-content:center; padding:16px; }
+.wl-back[hidden] { display:none; }
+.wl { width:min(420px, 100%); max-height:calc(100vh - 32px); overflow:auto; background:var(--s-bg); color:var(--s-fg); border-radius:16px; padding:20px 22px; box-shadow:0 30px 80px -20px rgba(0,0,0,.45); display:flex; flex-direction:column; gap:10px; font-family:var(--apple); font-size:14px; line-height:1.4; }
+.wl h3 { font-family:var(--s-hfont); font-size:1.3rem; margin:0; }
+.wl .lead { color:var(--s-muted); font-size:13px; margin:0; }
+.wl .row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.wl label.f { display:flex; flex-direction:column; gap:3px; font-size:12px; font-weight:600; color:var(--s-muted); }
+.wl input[type=text], .wl input[type=email], .wl textarea { font:inherit; font-size:14px; font-weight:400; padding:7px 9px; border-radius:8px; border:1px solid var(--s-line); background:var(--s-bg); color:var(--s-fg); resize:vertical; }
+.wl input:focus, .wl textarea:focus { outline:2px solid var(--s-mark); outline-offset:0; }
+.wl fieldset { border:0; padding:0; margin:0; }
+.wl legend { font-size:12px; font-weight:600; color:var(--s-muted); margin-bottom:5px; padding:0; }
+.wl .boxes { display:grid; grid-template-columns:repeat(3, auto); justify-content:start; gap:6px 18px; }
+.wl .boxes label { display:flex; align-items:center; gap:6px; font-size:14px; cursor:pointer; }
+.wl .boxes input { accent-color:var(--s-mark); width:15px; height:15px; margin:0; }
+.wl .acts { display:flex; justify-content:flex-end; gap:8px; margin-top:4px; }
+.wl .acts .btn { font-size:14px; padding:7px 14px; border-radius:8px; }
+.wl .note { font-size:11.5px; color:var(--s-muted); margin:0; }
+.wl .err { color:#b3261e; font-size:12.5px; margin:0; }
+.wl .err:empty { display:none; }
+.wl .done { text-align:center; display:flex; flex-direction:column; gap:8px; align-items:center; padding-block:10px; }
+@container (max-width: 640px) { .hook-q { font-size:2rem; } .hook-rot { font-size:1.2rem; height:2.8em; } .wl .boxes { grid-template-columns:repeat(2, auto); } }
+
+/* Motion (all of it switched off for people who ask their device for less motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .wash i:nth-child(1) { animation:drift1 22s ease-in-out infinite alternate; }
+  .wash i:nth-child(2) { animation:drift2 26s ease-in-out infinite alternate; }
+  .wash i:nth-child(3) { animation:drift3 30s ease-in-out infinite alternate; }
+  @keyframes drift1 { to { transform:translate(18%, 14%) scale(1.15); } }
+  @keyframes drift2 { to { transform:translate(-16%, 18%) scale(.9); } }
+  @keyframes drift3 { to { transform:translate(-20%, -12%) scale(1.2); } }
+  .h1 span { animation:word .8s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes word { from { opacity:0; transform:translateY(.4em); filter:blur(6px); } to { opacity:1; transform:none; filter:none; } }
+  .hero .sub, .hero .btns, .hero .small { animation:word .8s .7s cubic-bezier(.2,.7,.2,1) both; }
+  .devices { animation:word 1s .9s cubic-bezier(.2,.7,.2,1) both; }
+  .track.one { animation:slide 70s linear infinite; } .track.two { animation:slide 90s linear infinite reverse; }
+  .strip:hover .track { animation-play-state:paused; }
+  @keyframes slide { to { transform:translateX(-50%); } }
+  .rv { opacity:0; transform:translateY(34px); transition:opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
+  .rv.on { opacity:1; transform:none; }
+  .how li.rv:nth-child(2) { transition-delay:.12s; } .how li.rv:nth-child(3) { transition-delay:.24s; } .how li.rv:nth-child(4) { transition-delay:.36s; } .how li.rv:nth-child(5) { transition-delay:.48s; }
+  .btn { transition:transform .2s ease, box-shadow .2s ease; } .btn:hover { transform:translateY(-2px); box-shadow:0 8px 18px -8px rgba(0,0,0,.3); }
+}
+@media (prefers-reduced-motion: reduce) { .track { flex-wrap:wrap; width:auto; justify-content:center; } .track.two { display:none; } .cards { transition:none; } }
+
+@container (max-width: 900px) { .how { grid-template-columns:1fr 1fr; } .lgrid { grid-template-columns:1fr; } }
+@container (max-width: 640px) {
+  .show-cap { font-size:1.4rem; } .sitem { height:220px; } .sitem.s-iphone { height:200px; } .sitem.s-mini, .sitem.s-ipadl { height:170px; } .showrow { gap:28px; }
+  .devcaps span { display:none; } .devcaps b { font-size:1rem; }
+  .trio { grid-template-columns:1fr; grid-template-rows:none; row-gap:36px; } .trio figure { grid-row:auto; grid-template-rows:auto auto; } .trio .tphone .dev { width:30%; } .trio .tipad .dev { width:80%; } .trio figcaption { white-space:normal; }
+  .foot { grid-template-columns:1fr 1fr; }
+  .cdev { height:220px; }
+  .in { padding-left:max(20px, env(safe-area-inset-left, 0px)); padding-right:max(20px, env(safe-area-inset-right, 0px)); }
+  .links a.hide { display:none; } .links { gap:12px; }
+  .hero { padding-block:28px 6px; } .h1 { font-size:2.25rem; } .sub { font-size:1.05rem; }
+  .btns { flex-direction:column; align-items:stretch; width:100%; }
+  .devices { padding-inline:12px; gap:3%; }
+  .proof { gap:8px 18px; font-size:.92rem; }
+  .track figure { height:130px; }
+  .sec { padding-block:60px; } .sec-head h2 { font-size:1.9rem; }
+  .how { grid-template-columns:1fr; } .rename img { width:72px; height:72px; }
+  .card { padding:18px; } .card h3 { font-size:1.35rem; }
+  .private { grid-template-columns:1fr; } .plans { grid-template-columns:1fr; }
+  .end h2 { font-size:1.9rem; } .end { padding-block:60px; }
+}
+</style>
+</head>
+<body>
+<div id="view"></div>
+
+<script>
+(function () {
+  var dm = matchMedia('(prefers-color-scheme: dark)'); var s = { mode: dm.matches ? 'dark' : 'light', colors: 'a', fonts: 'b' };
+  if (dm.addEventListener) dm.addEventListener('change', function () { s.mode = dm.matches ? 'dark' : 'light'; render(); });
+  var view = document.getElementById('view');
+  var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var timers = [];
+  function later(fn, ms) { var t = setTimeout(fn, ms); timers.push(t); return t; }
+  function every(fn, ms) { var t = setInterval(fn, ms); timers.push(t); return t; }
+  function clearAll() { timers.forEach(function (t) { clearTimeout(t); clearInterval(t); }); timers = []; }
+
+  var STRIP = ['met-39799','unsplash-pancakes-1','loc-2007676134','unsplash-yellow-trolley','met-436528','commons-page-13','unsplash-variegated-monstera','loc-98517738','met-827660','unsplash-cobblestone-street','loc-99400959','met-333990','unsplash-pancakes-2','loc-2007676131','commons-mrs-14','unsplash-alleyway','met-438817','loc-96524672','unsplash-red-building-street','met-382608','loc-2007676133','loc-98518589'];
+  function strip(list) { var f = list.map(function (n) { return '<figure><img src="../strip/' + n + '.jpg" alt="" loading="lazy"></figure>'; }).join(''); return f + f; }
+
+  // Apple's own frames (Apple Design Resources), in their real colors. kind: mac, imac, ipad, ipadl (sideways), iphone, duo.
+  function frame(kind, inner, color) {
+    var file = { mac: 'macbook-' + (color || 'silver'), imac: 'imac-' + (color || 'silver'), ipad: 'ipad-' + (color || 'silver') + '-portrait',
+                 ipadl: 'ipad-' + (color || 'silver') + '-landscape', iphone: 'iphone-' + (color || 'silver'), duo: 'duo-night-sky',
+                 mini: 'mini-' + (color || 'starlight') + '-landscape', minip: 'mini-' + (color || 'midnight') + '-portrait', neo: 'neo-' + (color || 'blush'), pro: 'pro-' + (color || 'space-black') }[kind];
+    var alt = { minip: 'iPad mini', mini: 'iPad mini', neo: 'MacBook Neo', pro: 'MacBook Pro', ipadl: 'iPad', mac: 'MacBook Air', imac: 'iMac', ipad: 'iPad', iphone: 'iPhone', duo: 'iPhone Duo' }[kind];
+    return '<div class="dev ' + kind + '"><div class="screen">' + inner + '</div><img class="frame" src="../frames/c/' + file + '.png" alt="' + alt + ' showing Arbor"></div>';
+  }
+  function shot(name, alt) { return '<img src="../img/screens/' + name + '.jpg" alt="' + alt + '" loading="lazy">'; }
+
+  // Edwin's logo (Handoff/App-Icon/final-2026-11-03/LOGO), owner's pick for the header, 15 Nov 2026
+  var LOCKUP = '<svg class="lockup" viewBox="36 306 782 234" role="img" aria-label="Arbor"><g id="Layer_1" data-name="Layer 1"><path class="lg" d="M281.29857,522.33137l20.69945-3.05952h3.85523l20.86755,3.05952v9.58225H281.29857Zm59.36919-126.393H357.3997l46.39577,135.97527H376.73685L338.87774,416.15817l6.18978-5.24025-40.26764,120.9957H293.939ZM317.7733,479.502h55.07911l3.93766,10.657h-62.356Zm37.19255,43.05392,24.35543-3.05952h8.9475l25.74434,3.05952v9.35769H354.96585Z"/><path class="lg" d="M431.962,489.07387V478.28833c0-11.2191-.20379-16.42041-.61268-24.58l-14.37208-1.83675v-7.58844L451.085,431.36879l3.28408,2.11453,2.14958,25.27575v30.3148c0,12.64826.20379,33.6599.61138,42.83975H431.34931C431.7582,522.73377,431.962,501.72213,431.962,489.07387Zm-13.3531,34.50234,20.94154-4.0798h12.91566l20.94284,4.0798v8.33741h-54.8Zm26.22982-61.742h13.49978l-3.90195,3.52422c5.03126-22.041,18.37268-33.9896,30.48355-33.9896,7.4132,0,14.05794,3.90455,16.13094,11.05425-.22456,10.11185-5.01958,15.79085-13.17916,15.79085-5.44016,0-9.76658-2.43515-14.03718-7.21719l-5.73222-6.26442,9.09678.50624c-9.9522,5.92822-17.2953,16.4282-20.93894,30.33817l-11.4216-.749Z"/><path class="lg" d="M499.46221,523.65149l20.534-4.08109-7.63,12.41851c.40758-9.17986.61138-30.19149.61138-42.83975V401.26168l-14.7602-1.81469v-7.88828l36.44033-9.17985,3.08029,1.85622-.81518,28.74285v35.04881l.61138,2.65193v65.79327l-3.61249,17.93135-34.45949-2.41438Zm81.235-40.31762c0-25.19267-9.46413-37.45022-23.24559-37.45022-9.06563,0-18.61283,7.30676-29.31141,18.15591l-1.83545-3.52292c11.7565-19.97319,25.16671-29.14785,41.1354-29.14785,21.92287,0,39.35836,18.11437,39.35836,50.80332,0,32.16453-19.2995,52.618-42.719,52.618-15.43778,0-27.1125-7.97785-37.02575-29.11929l1.83545-3.56316c9.4849,12.34061,18.104,18.39345,27.91729,18.39345C570.07127,520.50111,580.69716,508.52654,580.69716,483.33387Z"/><path class="lg" d="M617.96954,483.07556c0-32.5903,22.82632-51.70677,49.20671-51.70677,26.12208,0,49.20671,18.89191,49.20671,51.70677,0,32.81615-21.81253,51.71455-49.20671,51.71455C639.44847,534.79011,617.96954,515.66715,617.96954,483.07556Zm71.81755.22456c0-28.15873-8.083-42.0025-22.61084-42.0025-14.78616,0-22.61084,13.84377-22.61084,42.0025,0,28.23532,7.82468,41.56116,22.61084,41.56116C681.70409,524.86128,689.78709,511.53544,689.78709,483.30012Z"/><path class="lg" d="M739.5922,489.07387V478.28833c0-11.2191-.20509-16.42041-.61268-24.58l-14.37337-1.83675v-7.58844l34.109-12.91436,3.28408,2.11453,2.14826,25.27575v30.3148c0,12.64826.20511,33.6599.6127,42.83975H738.97952C739.38711,522.73377,739.5922,501.72213,739.5922,489.07387Zm-13.3531,34.50234,20.94154-4.0798H760.0963l20.94283,4.0798v8.33741h-54.8Zm26.22982-61.742H765.9687l-3.902,3.52422c5.03-22.041,18.37268-33.9896,30.48355-33.9896,7.41319,0,14.05794,3.90455,16.13094,11.05425-.22456,10.11185-5.01958,15.79085-13.17916,15.79085-5.44146,0-9.76658-2.43515-14.03718-7.21719l-5.73222-6.26442,9.09678.50624c-9.9522,5.92822-17.2966,16.4282-20.94024,30.33817l-11.4203-.749Z"/><path class="lg" d="M209.43948,534.79011H41.71246V521.498h167.727c7.1471,0,12.96174-5.15329,12.96174-11.4865s-5.81464-11.4852-12.96174-11.4852H100.51116c-14.30458,0-25.9423-10.98675-25.9423-24.49043s11.63772-24.49042,25.9423-24.49042l34.96509-.08827c.06555-.0013.13759.0013.20639.0026.29076-.0039,31.07351.47249,41.3327-22.028l2.75707-6.04765,12.094,5.51415-2.75707,6.04764c-13.69969,30.0487-50.85265,29.85659-53.68825,29.80337l-34.893.08826c-6.992,0-12.66708,5.02348-12.66708,11.19833s5.6751,11.19833,12.65021,11.19833H209.43948c14.47657,0,26.25384,11.11526,26.25384,24.7773C235.69332,523.67486,223.91605,534.79011,209.43948,534.79011Z"/><path class="lo" d="M230.95687,315.60359c-23.95481,4.64858-44.05653,18.99512-53.085,40.75359-8.632,20.80289-5.28689,44.02136,6.95858,63.72282l10.58021-25.49809-10.25953-27.10745a2.56318,2.56318,0,1,1,4.794-1.81577l8.33208,22.01485,9.0621-21.83947-7.67059-20.26719a2.56318,2.56318,0,1,1,4.794-1.81577l5.74318,15.17451,11.84078-28.536a2.56307,2.56307,0,1,1,4.73471,1.96462l-11.84078,28.536,14.7993-6.65059a2.56319,2.56319,0,1,1,2.10014,4.67644L212.074,367.7987l-9.062,21.8393,21.46977-9.64863a2.56318,2.56318,0,1,1,2.10013,4.67643l-26.43654,11.88073-10.58017,25.498c22.5963-5.24407,41.397-19.27345,50.0289-40.07625C248.62257,360.20982,244.58313,335.84611,230.95687,315.60359Z"/></g></svg>';
+  // The device row: Apple's own frames, mixed models and colors, each showing a different part of Arbor.
+  var SHOW = [
+    ['mac', 'sky-blue', 'mac-books-classics', 'Libros, Clásicos: siete páginas de libros en una Mac'],
+    ['ipad', 'pink', 'ipad-picture-grandcanyon', 'Un cartel del Gran Cañón, con nombre y archivado en Viajes'],
+    ['iphone', 'burgundy', 'iphone-picture-pride', 'Orgullo y prejuicio, nombrado a partir de la página, en Libros'],
+    ['imac', 'orange', 'mac-art-paintings', 'Pinturas en el Willow Arte'],
+    ['mini', 'starlight', 'ipad-landscape-garden', 'El Willow Jardín en iPad mini'],
+    ['neo', 'citrus', 'mac-travel-parks', 'Carteles y capturas de parques nacionales en Viajes'],
+    ['iphone', 'glacier', 'iphone-books-classics', 'La Rama Clásicos en iPhone'],
+    ['imac', 'purple', 'mac-details-frankenstein', 'Los detalles de una foto: nombre, autor, Willow y Rama'],
+    ['minip', 'midnight', 'ipad-all-items', 'Todos los elementos en iPad mini'],
+    ['pro', 'space-black', 'mac-shopping-market', 'Fotos del mercado en Compras'],
+    ['iphone', 'black', 'iphone-search-monstera', 'Buscando monstera'],
+    ['neo', 'indigo', 'mac-garden', 'El Willow Jardín en una Mac'],
+    ['iphone', 'silver', 'iphone-all-items', 'Todos los elementos en iPhone']
+  ];
+
+  function render() {
+    clearAll();
+    var words = 'Agrega tus fotos. Arbor las ordena, les pone nombre y las archiva.'.split(' ').map(function (w, i) { return '<span style="animation-delay:' + (i * 0.07) + 's">' + w + '</span>'; }).join(' ');
+    view.innerHTML =
+      '<div class="site c-' + s.colors + ' f-' + s.fonts + (s.mode === 'dark' ? ' dark' : '') + '">' +
+      '<div class="top"><div class="wash" aria-hidden="true"><i></i><i></i><i></i></div>' +
+      '<div class="in nav"><a class="brand" href="./">' + LOCKUP + '</a><nav class="links"><a class="hide" href="#features" data-go="features">Funciones</a><a class="hide" href="#plans" data-go="plans">Plus</a><a href="support/">Ayuda</a><a class="lang" href="../" hreflang="en">English</a></nav></div>' +
+      '<div class="in hero"><div class="for">Hecho para iPhone, iPad y Mac</div><h1 class="h1">' + words + '</h1>' +
+      '<p class="sub">Para las capturas que tomas y olvidas, y cada foto que vale la pena guardar. Arbor lee cada una, le pone un nombre que reconocerás y la archiva donde la volverás a encontrar.</p>' +
+      '<div class="btns"><button type="button" class="btn" data-wait>Únete a la lista de espera</button><button type="button" class="btn ghost" data-go="how">Mira cómo funciona</button></div>' +
+      '<div class="small"><b>Hecho para dispositivos Apple.</b> Muy pronto en el App Store. Empieza gratis, y <b>Plus es gratis por 7 días</b>; luego $6.99 al mes o $49.99 al año.</div></div>' +
+      '<div class="devices">' + frame('ipadl', shot('ipad-landscape-all-items', 'Arbor en iPad: cada foto con su Willow y su Rama'), 'blue') + frame('mac', shot('mac-all-items-grid', 'Arbor en una Mac: Todos los elementos, cada foto con su nombre'), 'midnight') + frame('iphone', shot('iphone-forest', 'Arbor en iPhone: el Forest con sus Willows'), 'glacier') + '</div>' +
+      '<div class="devcaps"><div class="cap-ipad"><b>iPad</b><span>Una vista más amplia de tu Forest.</span></div><div class="cap-mac"><b>Mac</b><span>Espacio para organizar.</span></div><div class="cap-iphone"><b>iPhone</b><span>Tus fotos siempre a mano.</span></div></div>' +
+      '<p class="syncline">Con Plus, inicia sesión con Apple o Google y tus fotos son las mismas en todos tus dispositivos.</p></div>' +
+      '<div class="in proof"><span><i></i>Se lee en tu dispositivo</span><span><i></i>Nombre y lugar para cada foto</span><span><i></i>Pregunta cuando no está seguro</span><span><i></i>Nadie en Arbor ve tus fotos</span></div>' +
+      '<section class="sec in hook"><p class="hook-q">¿Qué pasó con esa captura?</p><div class="hook-rot" aria-live="off"><span>Los zapatos que capturaste hace seis semanas.</span><span>La receta que juraste preparar este fin de semana.</span><span>La fecha del concierto que te mandó un amigo.</span><span>La contraseña del Wi-Fi del alquiler.</span><span>El libro que alguien te recomendó.</span></div>' +
+      '<p class="hook-p">Está en algún lugar de tu galería, entre otras cuatro mil fotos. Arbor la encuentra, le pone nombre y la archiva, para que de verdad compres los zapatos, prepares la receta y vayas al concierto.</p>' +
+      '<p class="hook-plus"><span class="plus">PLUS</span> Convierte una foto en una tarea con un recordatorio el día que vence, o directamente en tu calendario.</p></section>' +
+
+      '<section class="sec show" id="features"><p class="show-cap in">Recetas, carteles, lugares, plantas, pinturas, páginas. Lo que guardes, Arbor lo archiva.</p>' +
+      '<div class="showrow" id="showrow" tabindex="0" aria-label="Arbor on Apple devices, swipe sideways for more">' + SHOW.map(function (x) { return '<div class="sitem s-' + x[0] + '">' + frame(x[0], shot(x[2], x[3]), x[1]) + '</div>'; }).join('') + '</div>' +
+      '<div class="cnav"><button type="button" class="arrow" data-show="-1" aria-label="Back">\u2190</button><button type="button" class="arrow" data-show="1" aria-label="More">\u2192</button></div></section>' +
+
+      '<section class="sec in" id="how"><div class="sec-head"><h2>Cómo funciona Arbor</h2><p>Tú creas los lugares. Arbor los llena.</p></div><ol class="how">' +
+      '<li><span class="n">1</span><b>Crea tu Forest</b><p>Crea un Willow para cada tipo de foto que guardas, como Recetas, Viajes o Arte, con Ramas dentro. Dile a Arbor en una línea qué va en cada uno.</p></li>' +
+      '<li><span class="n">2</span><b>Agrega tus fotos</b><p>Tráelas desde Fotos o una carpeta. En la Mac, la importación automática trae las nuevas sola.</p></li>' +
+      '<li><span class="n">3</span><b>Arbor lee cada una</b><p>Las palabras de cada foto, lo que muestra y la página web cuando hay un enlace. Todo en tu dispositivo.</p></li>' +
+      '<li><span class="n">4</span><b>Le pone nombre y la archiva</b><p>Un nombre de verdad, en el Willow y la Rama correctos. Cuando Arbor no está seguro, la foto espera en Por revisar.</p></li>' +
+      '<li><span class="n">5</span><b>Corrige una y aprende</b><p>Mueve una foto o cambia un nombre, y las siguientes llegan donde tú las pondrías.</p></li></ol>' +
+      '<div class="rename" id="rename" aria-label="IMG_4821.jpeg se tacha y pasa a ser Panqueques de arándanos, archivada en Recetas, Desayunos"><img src="../strip/unsplash-pancakes-1.jpg" alt=""><div class="names"><div class="tag">Antes</div><span class="old">IMG_4821.jpeg<svg viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true"><path id="scribble" d=""/></svg></span><div class="tag" style="margin-top:12px">Después</div><div class="new" id="nm">Panqueques de arándanos<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 8 C 50 3, 120 3, 197 7"/></svg></div><br><span class="chip" id="chip">Recetas \u203a Desayunos</span></div></div>' +
+      '<p class="fine">Un ejemplo de lo que hace Arbor con una foto.</p></section>' +
+
+
+      '<section class="sec in" id="learning"><div class="sec-head"><h2>Mira cómo Arbor aprende tu manera de ordenar</h2><p>Cada foto que mueves y cada nombre que corriges le enseña a Arbor. Tu perfil lo dibuja como un cielo nocturno: cada estrella es un Willow, las estrellas pequeñas unidas a ella son sus Ramas, y cuanto más sabe Arbor, más crecen. Haz clic en una estrella.</p></div>' +
+      '<div class="learnmock"><div class="lh"><b>Aprendizaje</b><span>Tu perfil</span></div><div class="lgrid"><div><canvas id="sky" role="img" aria-label="Un mapa de estrellas de Willows y sus Ramas, que crece a medida que Arbor aprende"></canvas>' +
+      '<div class="times" id="times"><button type="button" data-ring="0">Hace 3 meses</button><button type="button" data-ring="1">Hace 1 mes</button><button type="button" data-ring="2">La semana pasada</button><button type="button" data-ring="3">Ahora</button></div><p class="lhint">Haz clic en una estrella para ver lo que Arbor aprendió ahí.</p></div>' +
+      '<div class="lside" id="lside"></div></div></div></section>' +
+
+      '<section class="sec in"><div class="sec-head"><h2>Tus fotos siguen siendo tuyas</h2></div><div class="private">' +
+      '<div><b>Se lee en tu dispositivo</b><p>Leer, nombrar y archivar ocurre en tu iPhone, iPad o Mac.</p></div>' +
+      '<div><b>Cifradas antes de salir</b><p>Con Plus, las fotos se cifran en tu dispositivo antes de llegar a la nube de Arbor.</p></div>' +
+      '<div><b>Sin anuncios ni rastreo</b><p>Nadie en Arbor puede ver tus fotos, tus Willows ni de qué tratan.</p></div></div></section>' +
+
+      '<section class="sec in" id="plans"><div class="sec-head"><h2>Empieza gratis. Prueba Plus gratis por 7 días.</h2></div><div class="plans">' +
+      '<div class="plan"><h3>Basic</h3><div class="price"><b>Gratis</b></div><ul><li>Ordenar, nombrar y archivar</li><li>Hasta 500 fotos, guardadas en tu dispositivo</li><li>Aprende de tus correcciones</li><li>3 pistas por cada Willow y Rama, y 3 Indicadores</li></ul></div>' +
+      '<div class="plan plusc"><span class="trial">Gratis por 7 días</span><h3>Plus</h3><div class="price"><b>$6.99</b> al mes, o <b>$49.99</b> al año</div><div class="small">Prueba todo Plus gratis tus primeros 7 días. Cancela antes de que terminen y no pagas nada.</div><ul><li>Sin límite de fotos</li><li>Las mismas fotos en iPhone, iPad y Mac</li><li>Copia de respaldo en la nube de Arbor, cifrada en tu dispositivo</li><li>Encontrar fotos con el mismo contenido</li><li>Tareas a partir de tus fotos, y Añadir al calendario</li><li>Guías de enseñanza, nombres por Willow y Límites de limpieza</li></ul></div></div>' +
+      '<p class="fine">Plus se renueva solo a menos que desactives la renovación al menos 24 horas antes del final del periodo. Adminístralo o cancélalo en los ajustes de tu Apple ID.</p></section>' +
+
+      '<section class="sec in" id="questions"><div class="sec-head"><h2>Preguntas</h2></div><div class="qs">' +
+      '<details><summary>¿Cuánto cuesta Plus y hay prueba gratis?</summary><p>Plus es gratis tus primeros 7 días; luego $6.99 al mes o $49.99 al año. Cancela antes de que terminen los 7 días y no pagas nada. Una suscripción cubre tu iPhone, iPad y Mac.</p></details>' +
+      '<details><summary>¿Qué es gratis y qué trae Plus?</summary><p>Basic es gratis: ordenar, nombrar y archivar, aprender de tus correcciones y hasta 500 fotos en un dispositivo. Plus agrega fotos sin límite, el mismo Forest en todos tus dispositivos, copia de respaldo, tareas y eventos de calendario, encontrar el mismo contenido guardado dos veces, Guías de enseñanza y más.</p></details>' +
+      '<details><summary>¿Arbor sube algo?</summary><p>Con Basic no: todo se queda en tu dispositivo. Con Plus, todo se cifra en tu dispositivo antes de ir a la nube de Arbor, así que nadie en Arbor puede verlo.</p></details>' +
+      '<details><summary>¿Cómo se respalda?</summary><p>Con Plus, tu Forest se respalda en la nube de Arbor. En un dispositivo nuevo, inicia sesión con la misma cuenta de Apple o Google y todo vuelve. Basic no hace copia de respaldo, así que mantén activada la copia de tu dispositivo.</p></details>' +
+      '<details><summary>¿Qué pasa con los originales en Fotos?</summary><p>En iPhone y iPad, los originales se quedan en Fotos si así lo quieres. En la Mac, pasan a Arbor para que no estén en dos lugares, y tu Mac pregunta primero.</p></details>' +
+      '<details><summary>¿En qué dispositivos funciona?</summary><p>Solo en dispositivos Apple: iPhone y iPad con iOS 26 o posterior, y Mac con macOS 26.5 o posterior. Todavía no en Android ni Windows.</p></details>' +
+      '<details><summary>¿Qué es un Willow?</summary><p>Tu Forest lo guarda todo. Los Willows son los grupos grandes, como Recetas o Viajes. Dentro crecen las Ramas, como Postres o Lisboa.</p></details>' +
+      '<details><summary>¿Cuándo puedo tener Arbor?</summary><p>Arbor llega pronto al App Store. Únete a la lista de espera y te escribiremos cuando esté listo.</p></details>' +
+      '</div><p class="fine">Más respuestas, como cancelar, reembolsos e idiomas, en la <a href="support/">página de Ayuda</a>. ¿Algo más? Pregunta en el formulario de la lista de espera.</p></section>' +
+
+      '<section class="end"><div class="wash" aria-hidden="true" style="inset:0"><i></i><i></i><i></i></div><h2>Dale un hogar a tus fotos</h2><p class="small" style="font-size:1.05rem">Sé de los primeros en saber cuándo llega Arbor.</p><button type="button" class="btn" data-wait>Únete a la lista de espera</button><div class="small">Muy pronto en el App Store para iPhone, iPad y Mac</div></section>' +
+      '<div class="in foot"><div class="fcol"><b>Arbor</b><a href="support/">Ayuda</a><a href="privacy/">Privacidad</a><a href="terms/">Términos</a></div>' +
+      '<div class="fcol"><b>Recursos</b><span>Guía de uso (PDF) <i class="soon">Muy pronto</i></span></div>' +
+      '<div class="fcol"><b>Idioma</b><a href="../">English</a><a href="#" data-noop>Espa\u00f1ol</a></div>' +
+      '<p class="fine2">\u00a9 2026 Arbor \u00b7 iPhone, iPad, Mac, MacBook Air and iMac son marcas de Apple Inc.</p></div>' +
+      
+'<div class="wl-back" id="wl" hidden><form class="wl" id="wlform" novalidate><h3>Únete a la lista de espera</h3><p class="lead">Te escribiremos cuando Arbor esté listo. Arbor está hecho para dispositivos Apple.</p>' +
+      '<div class="row"><label class="f" for="wl-first">Nombre<input type="text" id="wl-first" autocomplete="given-name"></label><label class="f" for="wl-last">Apellido<input type="text" id="wl-last" autocomplete="family-name"></label></div>' +
+      '<label class="f" for="wl-email">Correo<input type="email" id="wl-email" autocomplete="email"></label>' +
+      '<fieldset><legend>¿En qué dispositivos Apple lo usarías?</legend><div class="boxes">' + ['iPhone','iPad','MacBook'].map(function (d, i) { return '<label><input type="checkbox" id="wl-d' + i + '" value="' + d + '">' + d + '</label>'; }).join('') + '</div></fieldset>' +
+      '<label class="f" for="wl-note">Pregunta o comentario (opcional)<textarea id="wl-note" rows="2"></textarea></label>' +
+      '<input type="text" id="wl-web" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">' +
+      '<p class="err" id="wl-err" role="alert"></p>' +
+      '<div class="acts"><button type="button" class="btn ghost" data-close>Cancelar</button><button type="submit" class="btn">Unirme</button></div>' +
+      '<p class="note">Solo lo usamos para avisarte cuando Arbor esté listo. Puedes salir de la lista cuando quieras.</p></form></div>' +
+      '</div>';
+    start();
+  }
+
+  function start() {
+    // Mac screen plays through Arbor working
+    var slides = view.querySelectorAll('.devices .dev.mac .slide'), si = 0;
+    if (!still) every(function () { slides[si].classList.remove('on'); si = (si + 1) % slides.length; slides[si].classList.add('on'); }, 3800);
+
+    // The hook paragraph darkens word by word as you scroll into it (Hustla style)
+    var hp = view.querySelector('.hook-p');
+    if (hp && !hp.dataset.split) {
+      hp.dataset.split = 1; hp.innerHTML = hp.textContent.split(' ').map(function (w) { return '<span class="w">' + w + '</span>'; }).join(' ');
+      var ws = hp.querySelectorAll('.w');
+      var lightUp = function () { var r = hp.getBoundingClientRect(), f = still ? 1 : Math.min(1, Math.max(0, (innerHeight * .85 - r.top) / (innerHeight * .5))); var n = Math.round(f * ws.length); ws.forEach(function (w, i) { w.classList.toggle('lit', i < n); }); };
+      lightUp(); addEventListener('scroll', lightUp, { passive: true });
+    }
+    // Hook lines change by themselves
+    var rot = view.querySelectorAll('.hook-rot span'), ri = 0; if (rot.length) { rot[0].classList.add('on'); if (!still) every(function () { rot[ri].classList.remove('on'); ri = (ri + 1) % rot.length; rot[ri].classList.add('on'); }, 2600); }
+    // Reveal on scroll
+    var io = 'IntersectionObserver' in window && !still ? new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); if (e.target.id === 'nm') typeName(); } }); }, { threshold: 0.2 }) : null;
+    view.querySelectorAll('.sec-head, .how li, .rename, .plan, .private > div, .qs, .tabstage').forEach(function (el) { if (io) { el.classList.add('rv'); io.observe(el); } else el.classList.add('on'); });
+    var nm = view.querySelector('#nm'); if (io) io.observe(nm); else typeName();
+
+    // The device row moves only when people swipe or press an arrow (Apple's devices may not move by themselves)
+    var row = view.querySelector('#showrow');
+    view.querySelectorAll('[data-show]').forEach(function (b) { b.addEventListener('click', function () { row.scrollBy({ left: +b.dataset.show * row.clientWidth * .7, behavior: still ? 'auto' : 'smooth' }); }); });
+    sky();
+  }
+
+
+  // The Learning star chart, drawn the way Arbor draws it (LearningProfile.swift): an old star map of dotted rings
+  // and spokes in a double frame; each Willow a star on a sunflower spiral, its Ramas small stars joined to it;
+  // soft halos that breathe; italic names. Here it plays through the four times: 3 months ago, 1 month ago, last week, now.
+  // The Learning star chart, drawn the way Arbor draws Your Profile (LearningProfile.swift): an old star map of dotted
+  // rings and spokes in a double frame; each Willow a star on a sunflower spiral with its Ramas as small stars joined
+  // to it; soft halos that breathe; italic names. It plays through 3 months ago, 1 month ago, last week and now; a click
+  // on a star opens its panel on the side, like the app. The Willows and numbers are an example.
+  var skyRun = 0;
+  function sky() {
+    var cv = view.querySelector('#sky'); if (!cv) return;
+    var run = ++skyRun, ctx = cv.getContext('2d'), side = view.querySelector('#lside');
+    var W = [
+      { n: 'Recetas', v: [3, 10, 18, 26], b: [['Desayunos', [1, 4, 7, 10]], ['Cenas', [1, 3, 6, 9]], ['Postres', [0, 1, 3, 5]], ['Bebidas', [0, 0, 1, 2]]] },
+      { n: 'Viajes', v: [0, 4, 10, 16], b: [['Lisboa', [0, 2, 5, 7]], ['Kyoto', [0, 1, 2, 5]], ['Viajes por carretera', [0, 0, 1, 3]]] },
+      { n: 'Arte', v: [4, 7, 10, 13], b: [['Láminas', [1, 3, 4, 6]], ['Museos', [1, 2, 3, 4]]] },
+      { n: 'Libros', v: [1, 4, 7, 12], b: [['Poesía', [0, 1, 3, 5]], ['Por leer', [0, 2, 3, 4]], ['Citas', [0, 0, 1, 2]]] },
+      { n: 'Compras', v: [0, 3, 9, 15], b: [['Zapatos', [0, 1, 4, 7]], ['Ideas de regalo', [0, 1, 2, 4]], ['Decoración', [0, 0, 2, 3]]] },
+      { n: 'Eventos', v: [0, 1, 4, 8], b: [['Conciertos', [0, 0, 2, 4]], ['Teatro', [0, 0, 1, 2]]] },
+      { n: 'Plantas', v: [0, 1, 3, 5], b: [['Cuidado de monstera', [0, 0, 1, 2]]] },
+      { n: 'Recibos', v: [2, 4, 6, 9], b: [['Garantías', [0, 1, 2, 3]], ['Impuestos', [0, 1, 1, 2]]] },
+      { n: 'Ejercicio', v: [0, 0, 2, 4], b: [['Rutinas', [0, 0, 1, 2]]] },
+      { n: 'Casa', v: [0, 0, 0, 1], b: [['Cocina', [0, 0, 0, 0]], ['Jardín', [0, 0, 0, 0]]] },
+      { n: 'Entradas', v: [0, 0, 1, 3], b: [] },
+      { n: 'Mascotas', v: [0, 0, 0, 0], b: [] }
+    ];
+    var scale = 26, ring = 3, prev = 3, ringStart = 0, hold = 0, sel = null, dpr = Math.max(1, devicePixelRatio || 1), stars = [], hover = null;
+    var times = view.querySelectorAll('#times button');
+    function setRing(i, t) { prev = ring; ring = i; ringStart = t; times.forEach(function (b, j) { b.setAttribute('aria-pressed', String(j === i)); }); panel(); }
+    times.forEach(function (b) { b.onclick = function () { var t = performance.now() / 1000; setRing(+b.dataset.ring, t); hold = t + 10; }; });
+    function at(arr, r) { return arr[r == null ? ring : r]; }
+    function counts(v) { var noticed = Math.round(v * .45), compares = Math.round(v * .12), told = Math.round(v * .28); return [noticed, compares, told, Math.max(0, v - noticed - compares - told)]; }
+    function panel() {
+      var r = ring, tot = W.map(function (w) { return { n: w.n, v: at(w.v, r) }; }), best = tot.slice().sort(function (a, b) { return b.v - a.v; })[0];
+      var newest = tot.filter(function (x) { return x.v > 0; }).sort(function (a, b) { return a.v - b.v; })[0];
+      var all = tot.reduce(function (s2, x) { return s2 + x.v; }, 0), moves = Math.round(all * .45), names = Math.round(all * .16), told = Math.round(all * .28), kept = Math.round(all * .6);
+      var html = '';
+      if (sel) {
+        var w = W.filter(function (x) { return x.n === sel; })[0], v = at(w.v, r), c = counts(v);
+        html += '<div class="lpanel"><div class="ph"><b>' + w.n + '</b><button type="button" data-close-star>✕ Close</button></div>' +
+          '<p class="sub">' + (v ? 'Arbor usa ' + v + ' cosas que aprendió aquí.' : 'Aún no aprendió nada aquí. Mueve una foto aquí y su estrella se enciende.') + '</p>' +
+          '<div class="row"><span>Lo que Juno notó en ' + w.n + '</span><span>' + c[0] + '</span></div>' +
+          '<div class="row"><span>Fotos con las que Juno compara</span><span>' + c[1] + '</span></div>' +
+          '<div class="row"><span>Lo que le dijiste a Juno sobre ' + w.n + '</span><span>' + c[2] + '</span></div>' +
+          '<div class="row"><span>Tus correcciones en ' + w.n + '</span><span>' + c[3] + '</span></div>' +
+          (w.b.length ? '<p class="br">Ramas: ' + w.b.map(function (b) { return b[0] + ' ' + at(b[1], r); }).join(' · ') + '</p>' : '') + '</div>';
+      }
+      html += '<h4>Cómo te conoce Arbor</h4><p class="exp">Cada estrella es uno de tus Willows, y las estrellas pequeñas unidas a ella son sus Ramas. Cuanto más grande la estrella, más aprendió Arbor de ti ahí.</p>' +
+        '<p class="best"><b>' + best.n + '</b> es donde Arbor mejor te conoce.' + (newest && newest.n !== best.n ? ' <b>' + newest.n + '</b> todavía es nuevo: enséñale un poco más y su estrella crecerá.' : '') + '</p>' +
+        '<div class="lstats"><div><b>' + moves + '</b><span>fotos que moviste ›</span></div><div><b>' + names + '</b><span>nombres que cambiaste ›</span></div><div><b>' + told + '</b><span>cosas que le dijiste a Juno ›</span></div><div><b>' + kept + '</b><span>sugerencias que aceptaste ›</span></div></div>' +
+        '<div class="lfirst">Acertó a la primera<span>' + [38, 47, 54, 61][r] + '%, de las ' + [12, 25, 41, 58][r] + ' sugerencias que revisaste</span></div>';
+      side.innerHTML = html;
+      var c2 = side.querySelector('[data-close-star]'); if (c2) c2.onclick = function () { sel = null; panel(); };
+    }
+    function pick(e) {
+      var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, found = null, bd = 1e9;
+      stars.forEach(function (st) { var d = Math.hypot(st.x - x, st.y - y); if (d < Math.max(16, st.r * 2.4) && d < bd) { bd = d; found = st; } });
+      return found;
+    }
+    cv.onclick = function (e) { var f = pick(e); sel = f ? f.willow : null; hold = performance.now() / 1000 + 12; panel(); };
+    cv.onmousemove = function (e) { var f = pick(e); hover = f ? f.willow : null; cv.style.cursor = f ? 'pointer' : 'default'; };
+    cv.onmouseleave = function () { hover = null; };
+    function ink(a) { var c = getComputedStyle(cv).color; var m = c.match(/\d+/g) || [0, 0, 0]; return 'rgba(' + m[0] + ',' + m[1] + ',' + m[2] + ',' + a + ')'; }
+    function ease(x) { x = Math.min(1, Math.max(0, x)); return x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
+    function frame(now) {
+      if (run !== skyRun || !cv.isConnected) return;
+      var t = now / 1000;
+      if (!still && t - ringStart > 4.5 && t > hold && !sel) setRing((ring + 1) % 4, t);
+      var r = cv.getBoundingClientRect(), w = r.width, h = r.height;
+      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+      var k = still ? 1 : ease((t - ringStart) / 1.6);
+      function val(arr) { return arr[prev] + (arr[ring] - arr[prev]) * k; }
+      var cx = w / 2, cy = h / 2;
+      ctx.save(); ctx.beginPath(); ctx.rect(10, 10, w - 20, h - 20); ctx.clip();
+      ctx.setLineDash([1.5, 3]); ctx.lineWidth = .8; ctx.strokeStyle = ink(.38);
+      for (var q = 1; q <= 4; q++) { ctx.beginPath(); ctx.ellipse(cx, cy, w * .13 * q, h * .13 * q, 0, 0, Math.PI * 2); ctx.stroke(); }
+      ctx.strokeStyle = ink(.28); ctx.lineWidth = .7;
+      for (q = 0; q < 12; q++) { var a = q * Math.PI / 6; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * w * .6, cy + Math.sin(a) * h * .6); ctx.stroke(); }
+      ctx.restore(); ctx.setLineDash([]);
+      ctx.strokeStyle = ink(.7); ctx.lineWidth = 1; ctx.strokeRect(3.5, 3.5, w - 7, h - 7);
+      ctx.strokeStyle = ink(.3); ctx.strokeRect(7.5, 7.5, w - 15, h - 15);
+      var n = W.length, gold = Math.PI * (3 - Math.sqrt(5)), unit = Math.min(w, h), rx = w / 2 - 40, ry = h / 2 - 34;
+      stars = [];
+      W.forEach(function (wl, i) {
+        var v = val(wl.v), spread = Math.sqrt((i + .5) / n) * .9, ang = i * gold - Math.PI / 2;
+        var p = { x: cx + Math.cos(ang) * spread * rx, y: cy + Math.sin(ang) * spread * ry };
+        var rad = unit * (.008 + .02 * Math.sqrt(v / scale));
+        stars.push({ name: wl.n, willow: wl.n, x: p.x, y: p.y, r: rad, v: v, ph: i * 1.37, main: true });
+        var out = Math.atan2((p.y - cy) / ry, (p.x - cx) / rx);
+        wl.b.forEach(function (b, j) {
+          var bv = val(b[1]), aa = out + (j - (wl.b.length - 1) / 2) * .8, d = rad + unit * .075;
+          var bp = { x: Math.min(Math.max(p.x + Math.cos(aa) * d, 16), w - 16), y: Math.min(Math.max(p.y + Math.sin(aa) * d, 16), h - 16) };
+          stars.push({ name: b[0], willow: wl.n, x: bp.x, y: bp.y, r: unit * (.004 + .009 * Math.sqrt(bv / scale)), v: bv, ph: (i * 7 + j) * .91, from: p });
+        });
+      });
+      var focus = sel || hover;
+      function fade(st) { return !focus || st.willow === focus ? 1 : .22; }
+      stars.forEach(function (st) { if (!st.from) return; ctx.beginPath(); ctx.moveTo(st.from.x, st.from.y); ctx.lineTo(st.x, st.y); ctx.strokeStyle = ink((st.v < .5 ? .22 : .4) * fade(st)); ctx.lineWidth = .6; ctx.setLineDash(st.v < .5 ? [2, 2] : []); ctx.stroke(); });
+      ctx.setLineDash([]);
+      stars.forEach(function (st) {
+        if (st.v < .5) { var rr = Math.max(1.8, st.r * (st.main ? .5 : .6)); ctx.beginPath(); ctx.arc(st.x, st.y, rr, 0, Math.PI * 2); ctx.strokeStyle = ink(.45 * fade(st)); ctx.lineWidth = .8; ctx.stroke(); }
+        else {
+          var breath = still ? 1 : .55 + .45 * (.5 + .5 * Math.sin(t * 2 * Math.PI / (3.2 + st.ph % 2.4) + st.ph));
+          var halo = st.r * 2.6, g = ctx.createRadialGradient(st.x, st.y, 0, st.x, st.y, halo);
+          g.addColorStop(0, ink(.3 * breath * fade(st))); g.addColorStop(.45, ink(.09 * breath * fade(st))); g.addColorStop(1, ink(0));
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(st.x, st.y, halo, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = ink(fade(st)); ctx.beginPath(); ctx.arc(st.x, st.y, Math.max(1.3, st.r * (st.main ? .36 : .5)), 0, Math.PI * 2); ctx.fill();
+        }
+        if (st.main && st.willow === sel) { var sr = Math.max(st.r * 1.6, 6) + 5; ctx.beginPath(); ctx.arc(st.x, st.y, sr, 0, Math.PI * 2); ctx.strokeStyle = ink(1); ctx.lineWidth = .8; ctx.setLineDash([2, 2]); ctx.stroke(); ctx.setLineDash([]); }
+      });
+      // names: Willows in italics; Branch names smaller, shown for the Willow you point at or open
+      var fs = Math.max(11, Math.round(unit * .034));
+      ctx.textAlign = 'center';
+      stars.forEach(function (st) {
+        if (st.main) {
+          ctx.font = 'italic ' + (st.willow === sel ? '600 ' : '') + fs + 'px Georgia, serif';
+          ctx.fillStyle = ink((st.v < .5 ? .45 : Math.min(1, .55 + st.v / 10)) * fade(st));
+          ctx.fillText(st.name, st.x, st.y - Math.max(st.r * 1.1, 4) - 7);
+        } else if (focus === st.willow || (!focus && st.v >= 3)) {
+          ctx.font = 'italic ' + Math.round(fs * .78) + 'px Georgia, serif';
+          ctx.fillStyle = ink((st.v < .5 ? .4 : .75) * fade(st));
+          ctx.fillText(st.name, st.x, st.y + Math.max(st.r, 3) + fs * .95);
+        }
+      });
+      if (!still) requestAnimationFrame(frame);
+    }
+    setRing(still ? 3 : 0, performance.now() / 1000); prev = ring;
+    requestAnimationFrame(frame);
+  }
+  function typeName() {
+    var box = view.querySelector('#rename'), chip = view.querySelector('#chip'), sc = view.querySelector('#scribble');
+    if (!box) return;
+    // A real pen scribble: quick back-and-forth strokes across the word, a little uneven, like scratching out by hand.
+    var d = 'M4 26', x = 4, up = true, k = 0;
+    while (x < 196) { x += 7 + (k % 3) * 2.2; var y = up ? 6 + (k * 7 % 5) : 34 - (k * 5 % 6); d += ' Q ' + (x - 3).toFixed(1) + ' ' + (up ? y - 4 : y + 4) + ' ' + Math.min(x, 197).toFixed(1) + ' ' + y; up = !up; k++; }
+    sc.setAttribute('d', d);
+    var len = sc.getTotalLength ? sc.getTotalLength() : 1200;
+    sc.style.strokeDasharray = len; sc.style.strokeDashoffset = len;
+    if (still) { sc.style.strokeDashoffset = 0; box.classList.add('write'); chip.classList.add('on'); return; }
+    (function cycle() {
+      if (!box.isConnected) return;
+      box.classList.remove('gone', 'write'); chip.classList.remove('on');
+      sc.style.transition = 'none'; sc.style.strokeDashoffset = len; void sc.getBoundingClientRect();
+      later(function () { sc.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.3,.1,.5,1)'; sc.style.strokeDashoffset = 0; }, 900);
+      later(function () { box.classList.add('gone'); }, 2300);
+      later(function () { box.classList.add('write'); }, 2700);
+      later(function () { chip.classList.add('on'); }, 4300);
+      later(cycle, 8200);
+    })();
+  }
+
+
+
+
+  function openWait() { var w = view.querySelector('#wl'); w.hidden = false; var f = w.querySelector('#wl-first'); if (f) f.focus(); }
+  function closeWait() { var w = view.querySelector('#wl'); if (w) w.hidden = true; }
+  view.addEventListener('submit', function (e) {
+    if (e.target.id !== 'wlform') return; e.preventDefault();
+    var f = e.target, first = f.querySelector('#wl-first').value.trim(), last = f.querySelector('#wl-last').value.trim(), email = f.querySelector('#wl-email').value.trim();
+    var devs = [].map.call(f.querySelectorAll('.boxes input:checked'), function (c) { return c.value; });
+    var err = f.querySelector('#wl-err');
+    if (!first || !last) { err.textContent = 'Escribe tu nombre y apellido.'; return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Revisa tu correo.'; return; }
+    if (!devs.length) { err.textContent = 'Marca al menos un dispositivo.'; return; }
+    var btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Sending\u2026'; err.textContent = '';
+    fetch('https://arbor-cloud.arborcurator.workers.dev/v1/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ firstName: first, lastName: last, email: email, devices: devs, note: f.querySelector('#wl-note').value, website: f.querySelector('#wl-web').value, language: document.documentElement.lang }) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok) { btn.disabled = false; btn.textContent = 'Unirme'; err.textContent = res.j.error === 'too_many' ? 'Demasiados intentos desde aquí. Inténtalo de nuevo en una hora.' : 'Algo no funcionó. Revisa el formulario e inténtalo de nuevo.'; return; }
+        f.innerHTML = '<div class="done"><h3>Ya estás en la lista</h3><p class="lead">Gracias, ' + first.replace(/</g, '&lt;') + '. Te escribiremos a ' + email.replace(/</g, '&lt;') + ' cuando Arbor esté listo.</p><button type="button" class="btn" data-close>Cerrar</button></div>';
+      })
+      .catch(function () { btn.disabled = false; btn.textContent = 'Unirme'; err.textContent = 'No pudimos conectar con Arbor. Inténtalo de nuevo.'; });
+  });
+  addEventListener('keydown', function (e) { if (e.key === 'Escape') closeWait(); });
+  view.addEventListener('click', function (e) {
+    if (e.target.id === 'wl') { closeWait(); return; }
+    var a = e.target.closest('a, button'); if (!a) return;
+    if (a.hasAttribute('data-noop')) { e.preventDefault(); return; }
+    if (a.hasAttribute('data-wait')) { openWait(); return; }
+    if (a.hasAttribute('data-close')) { closeWait(); return; }
+    if (a.dataset.go) { e.preventDefault(); var t = view.querySelector('#' + a.dataset.go); if (t) window.scrollTo({ top: t.getBoundingClientRect().top + scrollY - 8, behavior: still ? 'auto' : 'smooth' }); }
+  });
+  addEventListener('resize', function () { var c = view.querySelector('#cards .card.on'); if (c) view.querySelector('#cards').style.transform = 'translateX(' + (-c.offsetLeft) + 'px)'; });
+  render();
+})();
+</script>
+</body>
+</html>
