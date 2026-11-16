@@ -442,16 +442,12 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
       '<input type="text" id="wl-web" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">' +
       '<p class="err" id="wl-err" role="alert"></p>' +
       '<div class="acts"><button type="button" class="btn ghost" data-close>Cancelar</button><button type="submit" class="btn">Unirme</button></div>' +
-      '<p class="note">Solo lo usamos para avisarte cuando Arbor esté listo. Puedes salir de la lista cuando quieras.</p></form></div>' +
+      '<p class="note">Solo lo usamos para avisarte cuando Arbor esté listo. Puedes <a href="leave/">salir de la lista</a> cuando quieras.</p></form></div>' +
       '</div>';
     start();
   }
 
   function start() {
-    // Mac screen plays through Arbor working
-    var slides = view.querySelectorAll('.devices .dev.mac .slide'), si = 0;
-    if (!still) every(function () { slides[si].classList.remove('on'); si = (si + 1) % slides.length; slides[si].classList.add('on'); }, 3800);
-
     // The hook paragraph darkens word by word as you scroll into it (Hustla style)
     var hp = view.querySelector('.hook-p');
     if (hp && !hp.dataset.split) {
