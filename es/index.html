@@ -723,7 +723,7 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
     if (!first || !last) { err.textContent = 'Escribe tu nombre y apellido.'; return; }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Revisa tu correo.'; return; }
     if (!devs.length) { err.textContent = 'Marca al menos un dispositivo.'; return; }
-    var btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Sending\u2026'; err.textContent = '';
+    var btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Enviando\u2026'; err.textContent = '';
     fetch('https://api.arborcurator.com/v1/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ firstName: first, lastName: last, email: email, devices: devs, note: f.querySelector('#wl-note').value, website: f.querySelector('#wl-web').value, language: document.documentElement.lang }) })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
