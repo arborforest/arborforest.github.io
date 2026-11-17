@@ -729,7 +729,7 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {
         if (!res.ok) { btn.disabled = false; btn.textContent = 'Unirme'; err.textContent = res.j.error === 'too_many' ? 'Demasiados intentos desde aquí. Inténtalo de nuevo en una hora.' : 'Algo no funcionó. Revisa el formulario e inténtalo de nuevo.'; return; }
-        f.innerHTML = '<div class="done"><h3>Ya estás en la lista</h3><p class="lead">Gracias, ' + first.replace(/</g, '&lt;') + '. Te escribiremos a ' + email.replace(/</g, '&lt;') + ' cuando Arbor esté listo.</p><button type="button" class="btn" data-close>Cerrar</button></div>';
+        f.innerHTML = '<div class="done"><h3>Ya estás en la lista</h3><p class="lead">Gracias, ' + first.replace(/</g, '&lt;') + '. Te escribiremos a ' + email.replace(/</g, '&lt;') + ' cuando Arbor esté listo. Te enviamos un correo de bienvenida: revisa tu bandeja de entrada (y la carpeta de spam, por si acaso).</p><button type="button" class="btn" data-close>Cerrar</button></div>';
       })
       .catch(function () { btn.disabled = false; btn.textContent = 'Unirme'; err.textContent = 'No pudimos conectar con Arbor. Inténtalo de nuevo.'; });
   });
