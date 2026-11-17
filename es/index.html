@@ -305,7 +305,8 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
 }
 @media (prefers-reduced-motion: reduce) { .track { flex-wrap:wrap; width:auto; justify-content:center; } .track.two { display:none; } .cards { transition:none; } }
 
-@container (max-width: 900px) { .how { grid-template-columns:1fr 1fr; } .lgrid { grid-template-columns:1fr; } }
+@container (max-width: 900px) { .how { grid-template-columns:1fr 1fr; } .lgrid { grid-template-columns:1fr; } .lgrid canvas { aspect-ratio:1.12; } }
+@container (max-width: 560px) { .lgrid canvas { aspect-ratio:.92; } }
 @container (max-width: 640px) {
   .show-cap { font-size:1.4rem; } .sitem { height:220px; } .sitem.s-iphone { height:200px; } .sitem.s-mini, .sitem.s-ipadl { height:170px; } .sitem { margin-right:28px; }
   .devcaps span { display:none; } .devcaps b { font-size:1rem; }
@@ -486,19 +487,110 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
     var cv = view.querySelector('#sky'); if (!cv) return;
     var run = ++skyRun, ctx = cv.getContext('2d'), side = view.querySelector('#lside');
     var W = [
-      { n: 'Recetas', v: [3, 10, 18, 26], b: [['Desayunos', [1, 4, 7, 10]], ['Cenas', [1, 3, 6, 9]], ['Postres', [0, 1, 3, 5]], ['Bebidas', [0, 0, 1, 2]]] },
-      { n: 'Viajes', v: [0, 4, 10, 16], b: [['Lisboa', [0, 2, 5, 7]], ['Kyoto', [0, 1, 2, 5]], ['Viajes por carretera', [0, 0, 1, 3]]] },
-      { n: 'Arte', v: [4, 7, 10, 13], b: [['Láminas', [1, 3, 4, 6]], ['Museos', [1, 2, 3, 4]]] },
-      { n: 'Libros', v: [1, 4, 7, 12], b: [['Poesía', [0, 1, 3, 5]], ['Por leer', [0, 2, 3, 4]], ['Citas', [0, 0, 1, 2]]] },
-      { n: 'Compras', v: [0, 3, 9, 15], b: [['Zapatos', [0, 1, 4, 7]], ['Ideas de regalo', [0, 1, 2, 4]], ['Decoración', [0, 0, 2, 3]]] },
-      { n: 'Eventos', v: [0, 1, 4, 8], b: [['Conciertos', [0, 0, 2, 4]], ['Teatro', [0, 0, 1, 2]]] },
-      { n: 'Plantas', v: [0, 1, 3, 5], b: [['Cuidado de monstera', [0, 0, 1, 2]]] },
-      { n: 'Recibos', v: [2, 4, 6, 9], b: [['Garantías', [0, 1, 2, 3]], ['Impuestos', [0, 1, 1, 2]]] },
-      { n: 'Ejercicio', v: [0, 0, 2, 4], b: [['Rutinas', [0, 0, 1, 2]]] },
-      { n: 'Casa', v: [0, 0, 0, 1], b: [['Cocina', [0, 0, 0, 0]], ['Jardín', [0, 0, 0, 0]]] },
-      { n: 'Entradas', v: [0, 0, 1, 3], b: [] },
-      { n: 'Mascotas', v: [0, 0, 0, 0], b: [] }
+      { n: 'Recetas', p: [0, 0], v: [3, 10, 18, 26], b: [['Desayunos', [1, 4, 7, 10]], ['Cenas', [1, 3, 6, 9]], ['Postres', [0, 1, 3, 5]], ['Bebidas', [0, 0, 1, 2]]] },
+      { n: 'Viajes', p: [.44, .42], v: [0, 4, 10, 16], b: [['Lisboa', [0, 2, 5, 7]], ['Kyoto', [0, 1, 2, 5]], ['Viajes por carretera', [0, 0, 1, 3]], ['Hoteles', [0, 0, 1, 2]]] },
+      { n: 'Arte', p: [-.44, .04], v: [4, 7, 10, 13], b: [['Láminas', [1, 3, 4, 6]], ['Museos', [1, 2, 3, 4]], ['Bocetos', [0, 1, 1, 2]]] },
+      { n: 'Libros', p: [.4, -.4], v: [1, 4, 7, 12], b: [['Poesía', [0, 1, 3, 5]], ['Por leer', [0, 2, 3, 4]], ['Citas', [0, 0, 1, 2]]] },
+      { n: 'Compras', p: [-.12, .62], v: [0, 3, 9, 15], b: [['Zapatos', [0, 1, 4, 7]], ['Ideas de regalo', [0, 1, 2, 4]], ['Decoración', [0, 0, 2, 3]]] },
+      { n: 'Eventos', p: [-.36, -.56], v: [0, 1, 4, 8], b: [['Conciertos', [0, 0, 2, 4]], ['Teatro', [0, 0, 1, 2]]] },
+      { n: 'Trabajo', p: [.06, -.74], v: [1, 3, 5, 7], b: [['Reuniones', [0, 1, 2, 3]], ['Presentaciones', [0, 1, 1, 2]]] },
+      { n: 'Recibos', p: [-.8, .46], v: [2, 4, 6, 9], b: [['Garantías', [0, 1, 2, 3]], ['Impuestos', [0, 1, 1, 2]]] },
+      { n: 'Música', p: [.84, .02], v: [0, 2, 4, 6], b: [['Listas', [0, 1, 2, 3]], ['Vinilos', [0, 0, 1, 2]]] },
+      { n: 'Plantas', p: [.32, .86], v: [0, 1, 3, 5], b: [['Cuidado de monstera', [0, 0, 1, 2]], ['Suculentas', [0, 0, 1, 1]]] },
+      { n: 'Ejercicio', p: [-.86, -.28], v: [0, 0, 2, 4], b: [['Rutinas', [0, 0, 1, 2]], ['Correr', [0, 0, 1, 2]]] },
+      { n: 'Entradas', p: [.84, -.66], v: [0, 0, 1, 3], b: [] },
+      { n: 'Casa', p: [.86, .66], v: [0, 0, 0, 1], b: [['Cocina', [0, 0, 0, 0]], ['Jardín', [0, 0, 0, 0]]] },
+      { n: 'Mascotas', p: [-.5, .9], v: [0, 0, 0, 0], b: [] }
     ];
+    // Where everything goes (owner 16 Nov 2026: more Willows, and no name may sit on another). Willows have fixed
+    // spots; each Willow's Branches fan out in the direction with the most room; then names are placed one by one,
+    // most important first, beside their star where nothing else is. A Branch name with no free spot waits until
+    // you point at its Willow, which puts that Willow's names first.
+    var lay = null, labelKey = '', labelList = [];
+    function place(w, h) {
+      var cx = w / 2, cy = h / 2, unit = Math.min(w, h), rx = w / 2 - 48, ry = h / 2 - 38, m = 26;
+      var pos = W.map(function (wl) { return { x: cx + wl.p[0] * rx, y: cy + wl.p[1] * ry }; });
+      var taken = pos.map(function (p, i) { return { x: p.x, y: p.y, i: i, main: true }; }), br = [];
+      W.map(function (x, i) { return i; }).sort(function (a, b) { return W[b].v[3] - W[a].v[3]; }).forEach(function (i) {
+        var wl = W[i], p = pos[i], k = wl.b.length, best = [], bc = Infinity; br[i] = [];
+        if (!k) return;
+        var d = Math.max(unit * .1, 34), spread = k > 3 ? .62 : .78, outA = Math.atan2((p.y - cy) / ry, (p.x - cx) / rx);
+        for (var s = 0; s < 36; s++) {
+          var th = s * Math.PI / 18, cost = (1 - Math.cos(th - outA)) * 1.5, cand = [];
+          for (var j = 0; j < k; j++) {
+            var a = th + (j - (k - 1) / 2) * spread, dd = d * (k > 2 && j % 2 ? 1.3 : 1);
+            var q = { x: p.x + Math.cos(a) * dd, y: p.y + Math.sin(a) * dd, a: a, i: i };
+            if (q.x < m || q.x > w - m || q.y < m || q.y > h - m) cost += 200;
+            if (Math.sin(a) < -.6) cost += 6; // keep the spot above a Willow free for its name
+            taken.forEach(function (o) {
+              if (o.i === i) return;
+              var lim = o.main ? unit * .13 : unit * .08, dist = Math.hypot(o.x - q.x, o.y - q.y);
+              if (dist < lim) cost += 40 * (lim - dist) / lim;
+              // a line to a Branch must not run through another Willow's star
+              if (o.main && Math.hypot(o.x - q.x, o.y - unit * .055 - q.y) < unit * .08) cost += 30;
+              if (o.main) { var t = Math.max(0, Math.min(1, ((o.x - p.x) * (q.x - p.x) + (o.y - p.y) * (q.y - p.y)) / (dd * dd))), ex = p.x + (q.x - p.x) * t - o.x, ey = p.y + (q.y - p.y) * t - o.y; if (Math.hypot(ex, ey) < unit * .05) cost += 60; }
+            });
+            cand.push(q);
+          }
+          if (cost < bc) { bc = cost; best = cand; }
+        }
+        best.forEach(function (q) { taken.push(q); });
+        br[i] = best;
+      });
+      return { w: w, h: h, pos: pos, br: br };
+    }
+    function names(focus, r, fs) {
+      var key = [lay.w, lay.h, r, focus, fs].join('|');
+      if (key === labelKey) return labelList;
+      var w = lay.w, h = lay.h, m = 12, boxes = [], items = [], out = [];
+      W.forEach(function (wl, i) {
+        var p = lay.pos[i];
+        boxes.push([p.x - 7, p.y - 7, p.x + 7, p.y + 7]);
+        items.push({ pri: (focus === wl.n ? 2000 : 1000) + wl.v[r], text: wl.n, x: p.x, y: p.y, main: true, willow: wl.n, v: wl.v[r] });
+        wl.b.forEach(function (b, j) {
+          var q = lay.br[i][j], bv = b[1][r];
+          boxes.push([q.x - 4, q.y - 4, q.x + 4, q.y + 4]);
+          // on a small screen, Branch names show only for the Willow you tap
+          if (focus === wl.n || (bv >= 1 && Math.min(w, h) >= 420)) items.push({ pri: (focus === wl.n ? 2000 : 0) + bv, text: b[0], x: q.x, y: q.y, a: q.a, willow: wl.n, v: bv });
+        });
+      });
+      items.sort(function (a, b) { return b.pri - a.pri; });
+      function free(b) {
+        if (b[0] < m || b[2] > w - m || b[1] < m || b[3] > h - m) return false;
+        for (var i = 0; i < boxes.length; i++) { var o = boxes[i]; if (b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]) return false; }
+        return true;
+      }
+      items.forEach(function (it) {
+        var size = it.main ? fs : Math.round(fs * .8), font = 'italic ' + size + 'px Georgia, serif';
+        ctx.font = font;
+        var tw = ctx.measureText(it.text).width + 2, th = size * 1.05, g = it.main ? 10 : 6, x = it.x, y = it.y, spots;
+        if (it.main) spots = ['up', 'down', 'right', 'left', 'upright', 'upleft', 'downright', 'downleft', 'up2', 'down2'];
+        else {
+          var c = Math.cos(it.a), s = Math.sin(it.a), side = c > 0 ? 'right' : 'left', vert = s > 0 ? 'down' : 'up';
+          spots = Math.abs(c) > .4 ? [side, vert, vert + side, side === 'right' ? 'left' : 'right', vert === 'up' ? 'down' : 'up'] : [vert, vert + side, side, vert + (side === 'right' ? 'left' : 'right'), side === 'right' ? 'left' : 'right'];
+        }
+        var chosen = null;
+        for (var k = 0; k < spots.length && !chosen; k++) {
+          var sp = spots[k], x0, y0;
+          if (sp === 'up') { x0 = x - tw / 2; y0 = y - g - th; }
+          else if (sp === 'up2') { x0 = x - tw / 2; y0 = y - g * 2.2 - th; }
+          else if (sp === 'down2') { x0 = x - tw / 2; y0 = y + g * 2.2; }
+          else if (sp === 'down') { x0 = x - tw / 2; y0 = y + g; }
+          else if (sp === 'right') { x0 = x + g; y0 = y - th / 2; }
+          else if (sp === 'left') { x0 = x - g - tw; y0 = y - th / 2; }
+          else { x0 = sp.indexOf('right') > 0 ? x + g * .5 : x - g * .5 - tw; y0 = sp.indexOf('up') === 0 ? y - g - th : y + g; }
+          var bx = [x0, y0, x0 + tw, y0 + th];
+          if (free(bx)) chosen = bx;
+        }
+        // a Willow always keeps its name; it goes above its star if there's truly no room
+        if (!chosen && it.main) chosen = [x - tw / 2, y - g - th, x + tw / 2, y - g];
+        if (!chosen) return;
+        boxes.push(chosen);
+        out.push({ text: it.text, font: font, x: chosen[0] + 1, y: chosen[1] + size * .82, main: it.main, willow: it.willow, v: it.v });
+      });
+      labelKey = key; labelList = out;
+      return out;
+    }
     var scale = 26, ring = 3, prev = 3, ringStart = 0, hold = 0, sel = null, dpr = Math.max(1, devicePixelRatio || 1), stars = [], hover = null;
     var times = view.querySelectorAll('#times button');
     function setRing(i, t) { prev = ring; ring = i; ringStart = t; times.forEach(function (b, j) { b.setAttribute('aria-pressed', String(j === i)); }); panel(); }
@@ -555,18 +647,15 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
       ctx.restore(); ctx.setLineDash([]);
       ctx.strokeStyle = ink(.7); ctx.lineWidth = 1; ctx.strokeRect(3.5, 3.5, w - 7, h - 7);
       ctx.strokeStyle = ink(.3); ctx.strokeRect(7.5, 7.5, w - 15, h - 15);
-      var n = W.length, gold = Math.PI * (3 - Math.sqrt(5)), unit = Math.min(w, h), rx = w / 2 - 40, ry = h / 2 - 34;
+      var unit = Math.min(w, h);
+      if (!lay || lay.w !== w || lay.h !== h) { lay = place(w, h); labelKey = ''; }
       stars = [];
       W.forEach(function (wl, i) {
-        var v = val(wl.v), spread = Math.sqrt((i + .5) / n) * .9, ang = i * gold - Math.PI / 2;
-        var p = { x: cx + Math.cos(ang) * spread * rx, y: cy + Math.sin(ang) * spread * ry };
-        var rad = unit * (.008 + .02 * Math.sqrt(v / scale));
+        var v = val(wl.v), p = lay.pos[i], rad = unit * (.008 + .02 * Math.sqrt(v / scale));
         stars.push({ name: wl.n, willow: wl.n, x: p.x, y: p.y, r: rad, v: v, ph: i * 1.37, main: true });
-        var out = Math.atan2((p.y - cy) / ry, (p.x - cx) / rx);
         wl.b.forEach(function (b, j) {
-          var bv = val(b[1]), aa = out + (j - (wl.b.length - 1) / 2) * .8, d = rad + unit * .075;
-          var bp = { x: Math.min(Math.max(p.x + Math.cos(aa) * d, 16), w - 16), y: Math.min(Math.max(p.y + Math.sin(aa) * d, 16), h - 16) };
-          stars.push({ name: b[0], willow: wl.n, x: bp.x, y: bp.y, r: unit * (.004 + .009 * Math.sqrt(bv / scale)), v: bv, ph: (i * 7 + j) * .91, from: p });
+          var bv = val(b[1]), q = lay.br[i][j];
+          stars.push({ name: b[0], willow: wl.n, x: q.x, y: q.y, r: unit * (.004 + .009 * Math.sqrt(bv / scale)), v: bv, ph: (i * 7 + j) * .91, from: p });
         });
       });
       var focus = sel || hover;
@@ -584,19 +673,14 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
         }
         if (st.main && st.willow === sel) { var sr = Math.max(st.r * 1.6, 6) + 5; ctx.beginPath(); ctx.arc(st.x, st.y, sr, 0, Math.PI * 2); ctx.strokeStyle = ink(1); ctx.lineWidth = .8; ctx.setLineDash([2, 2]); ctx.stroke(); ctx.setLineDash([]); }
       });
-      // names: Willows in italics; Branch names smaller, shown for the Willow you point at or open
-      var fs = Math.max(11, Math.round(unit * .034));
-      ctx.textAlign = 'center';
-      stars.forEach(function (st) {
-        if (st.main) {
-          ctx.font = 'italic ' + (st.willow === sel ? '600 ' : '') + fs + 'px Georgia, serif';
-          ctx.fillStyle = ink((st.v < .5 ? .45 : Math.min(1, .55 + st.v / 10)) * fade(st));
-          ctx.fillText(st.name, st.x, st.y - Math.max(st.r * 1.1, 4) - 7);
-        } else if (focus === st.willow || (!focus && st.v >= 3)) {
-          ctx.font = 'italic ' + Math.round(fs * .78) + 'px Georgia, serif';
-          ctx.fillStyle = ink((st.v < .5 ? .4 : .75) * fade(st));
-          ctx.fillText(st.name, st.x, st.y + Math.max(st.r, 3) + fs * .95);
-        }
+      // names: Willows in italics, Branches smaller; each in a free spot beside its star, never on another name or star
+      var fs = Math.max(11, Math.round(unit * .032));
+      ctx.textAlign = 'left';
+      names(focus, ring, fs).forEach(function (lb) {
+        ctx.font = (lb.main && lb.willow === sel ? '600 ' : '') + lb.font;
+        var a = lb.main ? (lb.v < .5 ? .45 : Math.min(1, .55 + lb.v / 10)) : (lb.v < .5 ? .4 : .75);
+        ctx.fillStyle = ink(a * (!focus || lb.willow === focus ? 1 : .22));
+        ctx.fillText(lb.text, lb.x, lb.y);
       });
       if (!still) requestAnimationFrame(frame);
     }
