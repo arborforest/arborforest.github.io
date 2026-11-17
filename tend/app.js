@@ -106,7 +106,7 @@
     var fbNew = d ? d.feedback.filter(function (f) { return f.status === "new"; }).length : 0;
     var wlNew = d && d.waitlist ? d.waitlist.filter(function (w) { return w.status === "new"; }).length : 0;
     var tabs = [["people", "People" + (d ? " (" + d.people.length + ")" : "")], ["feedback", "Feedback" + (fbNew ? " (" + fbNew + " new)" : "")],
-                ["waitlist", "Waitlist" + (d && d.waitlist ? " (" + d.waitlist.length + (wlNew ? ", " + wlNew + " new" : "") + ")" : "")], ["growth", "Growth"], ["learning", "Learning"]];
+                ["waitlist", "Waitlist" + (d && d.waitlist ? " (" + d.waitlist.length + (wlNew ? ", " + wlNew + " new" : "") + ")" : "")], ["growth", "Growth"], ["learning", "Learning"], ["ideas", "Ideas" + (d && d.ideas ? " (" + d.ideas.filter(function (x) { return !x.done; }).length + ")" : "")]];
     var html = '<div class="top"><h1>Accounts</h1><div class="fresh">' +
       (state.loadedAt ? "Updated " + time(state.loadedAt) : "Loading…") +
       ' <button class="btn" id="refresh" type="button">Refresh</button></div></div>' +
@@ -124,6 +124,7 @@
     if (state.tab === "waitlist") return waitlistPage(body);
     if (state.tab === "growth") return growthPage(body);
     if (state.tab === "learning") return learningPage(body);
+    if (state.tab === "ideas") return ideasPage(body);
     peoplePage(body);
   }
 
@@ -292,6 +293,64 @@
           render();
         });
       };
+    });
+  }
+
+  // ---------- Ideas (owner 16 Nov 2026: "a section to write out my ideas") ----------
+  // Write one, press Save (or Command-Return). Newest first; tick one off when it's done, change it, or delete it.
+  function ideasPage(body) {
+    var all = state.data.ideas || [], f = state.ideaFilter || "open";
+    var list = all.filter(function (x) { return f === "all" || (f === "done" ? x.done : !x.done); });
+    var chips = [["open", "Open (" + all.filter(function (x) { return !x.done; }).length + ")"], ["done", "Done (" + all.filter(function (x) { return x.done; }).length + ")"], ["all", "All (" + all.length + ")"]];
+    body.innerHTML = '<div class="card" style="margin-bottom:14px"><textarea id="idea-new" rows="4" placeholder="Write an idea…" style="width:100%;box-sizing:border-box;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:inherit;resize:vertical"></textarea>' +
+      '<p style="margin:8px 0 0"><button class="btn on" id="idea-save" type="button">Save idea</button> <span class="sub" id="idea-msg"></span></p></div>' +
+      '<div class="tools"><div class="chips">' + chips.map(function (c) { return '<button class="btn' + (f === c[0] ? " on" : "") + '" data-if="' + c[0] + '" type="button">' + c[1] + "</button>"; }).join("") + "</div></div>" +
+      (list.length ? list.map(function (x) {
+        return '<div class="card" style="margin-bottom:10px' + (x.done ? ';opacity:.6' : '') + '"><p class="sub" style="margin:0 0 6px">' + date(x.at) + " " + time(x.at) + (x.done ? " · <i>done</i>" : "") + "</p>" +
+          '<div data-itext="' + x.id + '" style="white-space:pre-wrap;margin:0">' + esc(x.text) + "</div>" +
+          '<p style="margin:10px 0 0"><button class="btn" data-idone="' + x.id + '" type="button">' + (x.done ? "Not done" : "Done") + '</button> <button class="btn" data-iedit="' + x.id + '" type="button">Edit</button> <button class="btn" data-idel="' + x.id + '" type="button">Delete</button></p></div>';
+      }).join("") : '<p class="empty">' + (f === "done" ? "Nothing ticked off yet." : "No ideas yet. Write the first one above.") + "</p>");
+    var box = body.querySelector("#idea-new"), save = body.querySelector("#idea-save"), msg = body.querySelector("#idea-msg");
+    try { box.value = sessionStorage.getItem("arbor.idea.draft") || ""; } catch (e) {}
+    box.oninput = function () { msg.textContent = ""; try { sessionStorage.setItem("arbor.idea.draft", box.value); } catch (e) {} };
+    function add() {
+      var text = box.value.trim(); if (!text) { msg.textContent = "Write something first."; return; }
+      save.disabled = true;
+      post("/accounts/idea-add", { text: text }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+        save.disabled = false;
+        if (!j) { msg.textContent = "Couldn't save. Try again."; return; }
+        (state.data.ideas = state.data.ideas || []).unshift({ id: j.id, text: text, done: false, at: j.at, updatedAt: j.at });
+        try { sessionStorage.removeItem("arbor.idea.draft"); } catch (e) {}
+        state.ideaFilter = "open"; render();
+      }).catch(function () { save.disabled = false; msg.textContent = "Couldn't save. Try again."; });
+    }
+    save.onclick = add;
+    box.onkeydown = function (e) { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) add(); };
+    function find(id) { return all.filter(function (x) { return x.id === id; })[0]; }
+    body.querySelectorAll("[data-if]").forEach(function (b) { b.onclick = function () { state.ideaFilter = b.dataset.if; ideasPage(body); }; });
+    body.querySelectorAll("[data-idone]").forEach(function (b) {
+      b.onclick = function () { var x = find(b.dataset.idone); b.disabled = true;
+        post("/accounts/idea-update", { id: x.id, done: !x.done }).then(function (r) { if (r.ok) x.done = !x.done; render(); }); };
+    });
+    body.querySelectorAll("[data-iedit]").forEach(function (b) {
+      b.onclick = function () {
+        var x = find(b.dataset.iedit), holder = body.querySelector('[data-itext="' + x.id + '"]');
+        if (b.textContent === "Save") {
+          var t = holder.querySelector("textarea").value.trim(); if (!t) return;
+          b.disabled = true;
+          post("/accounts/idea-update", { id: x.id, text: t }).then(function (r) { if (r.ok) x.text = t; render(); });
+          return;
+        }
+        holder.innerHTML = '<textarea rows="5" style="width:100%;box-sizing:border-box;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:inherit;resize:vertical"></textarea>';
+        holder.querySelector("textarea").value = x.text; holder.querySelector("textarea").focus();
+        b.textContent = "Save";
+      };
+    });
+    body.querySelectorAll("[data-idel]").forEach(function (b) {
+      b.onclick = function () { var x = find(b.dataset.idel);
+        if (!confirm("Delete this idea? This can't be undone.")) return;
+        b.disabled = true;
+        post("/accounts/idea-delete", { id: x.id }).then(function (r) { if (r.ok) state.data.ideas = state.data.ideas.filter(function (i) { return i.id !== x.id; }); render(); }); };
     });
   }
 
