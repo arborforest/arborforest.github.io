@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<title>Arbor</title>
+<link rel="icon" href="../img/icon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1c1a;--muted:#6b6762;--line:#e2ded7;--card:#fff;--accent:#2f6f5e}
+@media (prefers-color-scheme:dark){:root{--bg:#16161a;--fg:#ebe8e2;--muted:#a39e96;--line:#33323a;--card:#1f1f25;--accent:#7fc4ad}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 Georgia,"Times New Roman",serif;padding:28px 16px 60px}
+main{max-width:1180px;margin:0 auto} h1{font-size:1.9rem;margin:0 0 4px} .lead{color:var(--muted);margin:0 0 18px}
+.strip{display:flex;flex-wrap:wrap;gap:8px 26px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:12px 16px;margin-bottom:16px}
+.strip b{font-size:1.15rem} .wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:.95rem} th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600} tr:last-child td{border-bottom:none} .muted{color:var(--muted)} .group th{font-weight:400;color:var(--muted);font-size:.8rem;padding-bottom:0;border-bottom:none}
+.foot{color:var(--muted);font-size:.9rem;max-width:80ch;margin-top:14px}
+form{max-width:340px;margin:12vh auto;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:22px}
+input{width:100%;box-sizing:border-box;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);margin:8px 0 12px}
+button{font:600 1rem Georgia,serif;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 16px;width:100%;cursor:pointer}
+.bad{color:#b4462e;margin:0 0 8px}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;justify-content:space-between}
+.fresh{color:var(--muted);font-size:.95rem;display:flex;gap:10px;align-items:center}
+.btn{font:600 .95rem Georgia,serif;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;width:auto}
+.btn:hover{border-color:var(--accent)} .btn.on{border-color:var(--accent);color:var(--accent)}
+.tabs{display:flex;gap:6px;margin:16px 0;flex-wrap:wrap} .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.tools input{width:220px;margin:0;padding:7px 10px} .chips{display:flex;gap:6px;flex-wrap:wrap}
+.menu{position:absolute;z-index:5;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.15);min-width:240px}
+.menu .row{display:flex;align-items:center;gap:8px;padding:4px 0} .menu .row span{flex:1}
+.menu .mv{border:1px solid var(--line);background:none;color:var(--fg);border-radius:6px;width:28px;height:26px;cursor:pointer;padding:0}
+th.sort{cursor:pointer} th.sort:hover{color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.card{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:14px 16px} .card h3{margin:0 0 2px;font-size:1.05rem} .card .sub{color:var(--muted);font-size:.88rem;margin:0 0 8px}
+.tip{position:fixed;pointer-events:none;background:var(--fg);color:var(--bg);font-size:.85rem;padding:4px 8px;border-radius:6px;display:none;z-index:9}
+svg text{fill:var(--muted);font:12px Georgia,serif} .empty{color:var(--muted);font-size:.92rem;padding:30px 0;text-align:center}</style>
+</head>
+<body><main>
+<div id="gate">
+  <div style="max-width:340px;margin:12vh auto;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:22px">
+    <h1>Arbor</h1>
+    <p class="lead">For Arbor's owner.</p>
+    <p class="bad" id="gate-msg"></p>
+    <label for="gate-code">Passcode</label>
+    <input id="gate-code" type="password" autocomplete="current-password">
+    <button type="button" id="gate-go">Open</button>
+  </div>
+</div>
+<div id="app" hidden><p class="lead">Loading…</p></div>
+</main>
+<script>
+var API = "https://api.arborcurator.com", PASS = "";
+(function () {
+  function start() {
+    document.getElementById("gate").hidden = true; document.getElementById("app").hidden = false;
+    var s = document.createElement("script"); s.src = "app.js"; document.body.appendChild(s);
+  }
+  try { var kept = JSON.parse(sessionStorage.getItem("tend-pass") || "null"); if (kept && kept.expires > Date.now() / 1000 + 60) { PASS = kept.token; start(); return; } } catch (e) {}
+  var code = document.getElementById("gate-code"), msg = document.getElementById("gate-msg"), go = document.getElementById("gate-go");
+  function open() {
+    msg.textContent = ""; go.disabled = true;
+    fetch(API + "/v1/owner-pass", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ passcode: code.value }) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); })
+      .then(function (res) {
+        go.disabled = false;
+        if (!res.ok) { msg.textContent = res.status === 429 ? "Too many tries. Wait an hour and try again." : "That passcode isn't right."; return; }
+        PASS = res.j.token; try { sessionStorage.setItem("tend-pass", JSON.stringify(res.j)); } catch (e) {}
+        start();
+      })
+      .catch(function () { go.disabled = false; msg.textContent = "Couldn't reach Arbor's cloud. Try again."; });
+  }
+  go.addEventListener("click", open);
+  code.addEventListener("keydown", function (e) { if (e.key === "Enter") open(); });
+  code.focus();
+})();
+</script>
+</body>
+</html>

@@ -10,11 +10,11 @@
 <meta name="theme-color" content="#151614" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="Arbor: your photo curator">
 <meta property="og:description" content="Add your pictures. Arbor sorts, names and files them. For iPhone, iPad and Mac.">
-<meta property="og:image" content="https://arborforest.github.io/img/share.png">
-<meta property="og:url" content="https://arborforest.github.io/">
+<meta property="og:image" content="https://arborcurator.com/img/share.png">
+<meta property="og:url" content="https://arborcurator.com/">
 <link rel="icon" href="img/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
-<link rel="alternate" hreflang="es" href="https://arborforest.github.io/es/">
+<link rel="alternate" hreflang="es" href="https://arborcurator.com/es/">
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Layout: Arbor's home page itself, full width. Motion lives in the page (a drifting color wash, a moving strip of
@@ -321,6 +321,7 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
   .private { grid-template-columns:1fr; } .plans { grid-template-columns:1fr; }
   .end h2 { font-size:1.9rem; } .end { padding-block:60px; }
 }
+.tend{color:inherit;text-decoration:none;opacity:.45;margin-left:4px}.tend:hover{opacity:.9}
 </style>
 </head>
 <body>
@@ -432,7 +433,7 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
       '<div class="in foot"><div class="fcol"><b>Arbor</b><a href="support/">Support</a><a href="privacy/">Privacy</a><a href="terms/">Terms</a></div>' +
       '<div class="fcol"><b>Resources</b><span>User guide (PDF) <i class="soon">Coming soon</i></span></div>' +
       '<div class="fcol"><b>Language</b><a href="./" aria-current="page">English</a><a href="es/" hreflang="es" lang="es">Espa\u00f1ol</a></div>' +
-      '<p class="fine2">\u00a9 2026 Arbor \u00b7 iPhone, iPad, Mac, MacBook Air and iMac are trademarks of Apple Inc.</p></div>' +
+      '<p class="fine2">\u00a9 2026 Arbor \u00b7 iPhone, iPad, Mac, MacBook Air and iMac are trademarks of Apple Inc. <a href="tend/" class="tend" aria-label="Owner" title="">\u2767</a></p></div>' +
       
 '<div class="wl-back" id="wl" hidden><form class="wl" id="wlform" novalidate><h3>Join the waitlist</h3><p class="lead">We\u2019ll write when Arbor is ready. Arbor is made for Apple devices.</p>' +
       '<div class="row"><label class="f" for="wl-first">First name<input type="text" id="wl-first" autocomplete="given-name"></label><label class="f" for="wl-last">Last name<input type="text" id="wl-last" autocomplete="family-name"></label></div>' +
@@ -655,7 +656,7 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Please check your email address.'; return; }
     if (!devs.length) { err.textContent = 'Please tick at least one device.'; return; }
     var btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Sending\u2026'; err.textContent = '';
-    fetch('https://arbor-sync.arborcurator.workers.dev/v1/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' },
+    fetch('https://api.arborcurator.com/v1/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ firstName: first, lastName: last, email: email, devices: devs, note: f.querySelector('#wl-note').value, website: f.querySelector('#wl-web').value, language: document.documentElement.lang }) })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {
