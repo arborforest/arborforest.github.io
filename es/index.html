@@ -165,7 +165,7 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
 .trio figcaption b { font-family:var(--s-hfont); font-size:1.5rem; font-weight:600; color:var(--s-fg); }
 .trio figcaption span { color:var(--s-muted); }
 .show-cap { text-align:center; font-family:var(--s-hfont); font-size:2rem; line-height:1.25; color:var(--s-head); max-width:28ch; margin:0 auto 34px !important; text-wrap:balance; }
-.showrow { display:flex; align-items:flex-end; gap:56px; overflow-x:auto; scroll-snap-type:x mandatory; scroll-padding-inline:8vw; padding:20px 8vw 28px; scrollbar-width:none; }
+.showrow { display:flex; align-items:flex-end; gap:56px; overflow-x:auto; padding:20px 8vw 28px; scrollbar-width:none; }
 .showrow::-webkit-scrollbar { display:none; }
 .sitem { flex:none; scroll-snap-align:center; height:360px; display:flex; align-items:flex-end; }
 .sitem .dev { height:100%; width:auto; } .sitem .dev .frame { height:100%; width:auto; }
@@ -390,7 +390,7 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
 
       '<section class="sec show" id="features"><p class="show-cap in">Recetas, carteles, lugares, plantas, pinturas, páginas. Lo que guardes, Arbor lo archiva.</p>' +
       '<div class="showrow" id="showrow" tabindex="0" aria-label="Arbor on Apple devices, swipe sideways for more">' + SHOW.map(function (x) { return '<div class="sitem s-' + x[0] + '">' + frame(x[0], shot(x[2], x[3]), x[1]) + '</div>'; }).join('') + '</div>' +
-      '<div class="cnav"><button type="button" class="arrow" data-show="-1" aria-label="Back">\u2190</button><button type="button" class="arrow" data-show="1" aria-label="More">\u2192</button></div></section>' +
+      '</section>' +
 
       '<section class="sec in" id="how"><div class="sec-head"><h2>Cómo funciona Arbor</h2><p>Tú creas los lugares. Arbor los llena.</p></div><ol class="how">' +
       '<li><span class="n">1</span><b>Crea tu Forest</b><p>Crea un Willow para cada tipo de foto que guardas, como Recetas, Viajes o Arte, con Ramas dentro. Dile a Arbor en una línea qué va en cada uno.</p></li>' +
@@ -436,7 +436,8 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
       
 '<div class="wl-back" id="wl" hidden><form class="wl" id="wlform" novalidate><h3>Únete a la lista de espera</h3><p class="lead">Te escribiremos cuando Arbor esté listo. Arbor está hecho para dispositivos Apple.</p>' +
       '<div class="row"><label class="f" for="wl-first">Nombre<input type="text" id="wl-first" autocomplete="given-name"></label><label class="f" for="wl-last">Apellido<input type="text" id="wl-last" autocomplete="family-name"></label></div>' +
-      '<label class="f" for="wl-email">Correo<input type="email" id="wl-email" autocomplete="email"></label>' +
+      '<label class="f" for="wl-email">Correo<input type="email" id="wl-email" autocomplete="email" aria-describedby="wl-email-tip"></label>' +
+      '<p class="note" id="wl-email-tip">Usa el correo de tu cuenta de Apple, el que tienes en tu iPhone, iPad o Mac. Ahí te escribiremos cuando Arbor esté listo.</p>' +
       '<fieldset><legend>¿En qué dispositivos Apple lo usarías?</legend><div class="boxes">' + ['iPhone','iPad','MacBook'].map(function (d, i) { return '<label><input type="checkbox" id="wl-d' + i + '" value="' + d + '">' + d + '</label>'; }).join('') + '</div></fieldset>' +
       '<label class="f" for="wl-note">Pregunta o comentario (opcional)<textarea id="wl-note" rows="2"></textarea></label>' +
       '<input type="text" id="wl-web" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">' +
@@ -463,9 +464,28 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
     view.querySelectorAll('.sec-head, .how li, .rename, .plan, .private > div, .qs, .tabstage').forEach(function (el) { if (io) { el.classList.add('rv'); io.observe(el); } else el.classList.add('on'); });
     var nm = view.querySelector('#nm'); if (io) io.observe(nm); else typeName();
 
-    // The device row moves only when people swipe or press an arrow (Apple's devices may not move by themselves)
+    // The device row glides by itself, back and forth (owner 16 Nov 2026); it stops while someone hovers, touches or
+    // scrolls it, and stays still for people who ask for less motion.
     var row = view.querySelector('#showrow');
-    view.querySelectorAll('[data-show]').forEach(function (b) { b.addEventListener('click', function () { row.scrollBy({ left: +b.dataset.show * row.clientWidth * .7, behavior: still ? 'auto' : 'smooth' }); }); });
+    if (row && !still) {
+      var dir = 1, pausedUntil = 0, hovering = false, pos = row.scrollLeft;
+      var pause = function (ms) { pausedUntil = performance.now() + ms; };
+      row.addEventListener('pointerenter', function () { hovering = true; });
+      row.addEventListener('pointerleave', function () { hovering = false; pause(1500); });
+      ['touchstart', 'wheel', 'focusin', 'keydown'].forEach(function (ev) { row.addEventListener(ev, function () { pause(4000); }, { passive: true }); });
+      (function step(t) {
+        if (!row.isConnected) return;
+        var max = row.scrollWidth - row.clientWidth;
+        if (hovering || t < pausedUntil) { pos = row.scrollLeft; }
+        else if (max > 0) {
+          pos += dir * 0.6;
+          if (pos >= max) { pos = max; dir = -1; pause(1200); }
+          if (pos <= 0) { pos = 0; dir = 1; pause(1200); }
+          row.scrollLeft = pos;
+        }
+        requestAnimationFrame(step);
+      })(0);
+    }
     sky();
   }
 
@@ -635,7 +655,7 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Revisa tu correo.'; return; }
     if (!devs.length) { err.textContent = 'Marca al menos un dispositivo.'; return; }
     var btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Sending\u2026'; err.textContent = '';
-    fetch('https://arbor-cloud.arborcurator.workers.dev/v1/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' },
+    fetch('https://arbor-sync.arborcurator.workers.dev/v1/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ firstName: first, lastName: last, email: email, devices: devs, note: f.querySelector('#wl-note').value, website: f.querySelector('#wl-web').value, language: document.documentElement.lang }) })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {

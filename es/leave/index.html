@@ -24,7 +24,7 @@
     var email = document.getElementById("leave-email").value.trim(), btn = f.querySelector("button");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = "Revisa tu correo."; return; }
     err.textContent = ""; btn.disabled = true;
-    fetch("https://arbor-cloud.arborcurator.workers.dev/v1/waitlist/leave-by-email", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email }) })
+    fetch("https://arbor-sync.arborcurator.workers.dev/v1/waitlist/leave-by-email", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email }) })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {
         if (!res.ok) { btn.disabled = false; err.textContent = res.j.error === "too_many" ? "Demasiados intentos desde aquí. Inténtalo de nuevo en una hora." : "Algo no funcionó. Inténtalo de nuevo."; return; }
