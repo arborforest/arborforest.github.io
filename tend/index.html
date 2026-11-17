@@ -42,9 +42,12 @@ svg text{fill:var(--muted);font:12px Georgia,serif} .empty{color:var(--muted);fo
     <h1>Arbor</h1>
     <p class="lead">For Arbor's owner.</p>
     <p class="bad" id="gate-msg"></p>
+    <form id="gate-form" method="post" action="./" style="border:0;background:none;padding:0;margin:0;box-shadow:none">
+    <input type="text" name="username" autocomplete="username" value="Arbor owner" readonly hidden>
     <label for="gate-code">Passcode</label>
-    <input id="gate-code" type="password" autocomplete="current-password">
-    <button type="button" id="gate-go">Open</button>
+    <input id="gate-code" name="password" type="password" autocomplete="current-password" required>
+    <button type="submit" id="gate-go">Open</button>
+    </form>
   </div>
 </div>
 <div id="app" hidden><p class="lead">Loading…</p></div>
@@ -53,12 +56,13 @@ svg text{fill:var(--muted);font:12px Georgia,serif} .empty{color:var(--muted);fo
 var API = "https://api.arborcurator.com", PASS = "";
 (function () {
   function start() {
-    document.getElementById("gate").hidden = true; document.getElementById("app").hidden = false;
+    var gate = document.getElementById("gate"); if (gate) gate.remove(); document.getElementById("app").hidden = false;
     var s = document.createElement("script"); s.src = "app.js"; document.body.appendChild(s);
   }
   try { var kept = JSON.parse(sessionStorage.getItem("tend-pass") || "null"); if (kept && kept.expires > Date.now() / 1000 + 60) { PASS = kept.token; start(); return; } } catch (e) {}
   var code = document.getElementById("gate-code"), msg = document.getElementById("gate-msg"), go = document.getElementById("gate-go");
-  function open() {
+  function open(e) {
+    if (e) e.preventDefault();
     msg.textContent = ""; go.disabled = true;
     fetch(API + "/v1/owner-pass", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ passcode: code.value }) })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); })
@@ -70,8 +74,8 @@ var API = "https://api.arborcurator.com", PASS = "";
       })
       .catch(function () { go.disabled = false; msg.textContent = "Couldn't reach Arbor's cloud. Try again."; });
   }
-  go.addEventListener("click", open);
-  code.addEventListener("keydown", function (e) { if (e.key === "Enter") open(); });
+  // A real form with a name and a password, removed once it works: Safari and Passwords then offer to save it.
+  document.getElementById("gate-form").addEventListener("submit", open);
   code.focus();
 })();
 </script>
