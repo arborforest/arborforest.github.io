@@ -279,7 +279,7 @@ var API = "https://api.arborcurator.com", PASS = "";
 (function () {
   function start() {
     var gate = document.getElementById("gate"); if (gate) gate.remove(); document.getElementById("app").hidden = false;
-    var s = document.createElement("script"); s.src = "app.js?v=1"; document.body.appendChild(s);
+    var s = document.createElement("script"); s.src = "app.js?v=05eee57a07"; document.body.appendChild(s);
   }
   try { var kept = JSON.parse(sessionStorage.getItem("tend-pass") || "null"); if (kept && kept.expires > Date.now() / 1000 + 60) { PASS = kept.token; start(); return; } } catch (e) {}
   var code = document.getElementById("gate-code"), msg = document.getElementById("gate-msg"), go = document.getElementById("gate-go");
