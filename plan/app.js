@@ -57,7 +57,7 @@
     var total = 0, done = 0; overview.pages.forEach(function (p) { total += p.points; done += p.done; });
     var g = groups();
     app.innerHTML =
-      '<header class="top"><p class="crumbs"><button class="ov-open" type="button">19 pages</button></p><h1>Arbor Planning Library</h1><p class="blurb">' + esc(INTRO) + "</p></header>" +
+      '<header class="top"><p class="backrow"><a href="../">&larr; Back to the website</a><span aria-hidden="true"> · </span><a href="../tend/">Accounts</a></p><p class="crumbs"><button class="ov-open" type="button">19 pages</button></p><h1>Arbor Planning Library</h1><p class="blurb">' + esc(INTRO) + "</p></header>" +
       '<div class="layout"><main class="content panel">' +
       '<div class="progress"><div class="pg-top"><span class="pg-pct">' + pct(done, total) + '%</span><span>' + done + " of " + total + " points checked off, across all 19 pages</span></div>" + bar(pct(done, total)) + '<div class="pg-status">' + esc(statusLine()) + "</div></div>" +
       '<p class="lede">Each page is one area of Arbor that had little or no planning before. Every part was researched from the project\'s own files and notes, and from outside sources where a fact needed checking.</p>' +
@@ -133,7 +133,7 @@
     var prev = list[i - 1], next = list[i + 1];
     var y = scrollY;
     app.innerHTML =
-      '<header class="top"><p class="crumbs"><a href="#">Arbor Planning Library</a> · <button class="ov-open" type="button">part ' + num + " of 19</button></p>" +
+      '<header class="top"><p class="backrow"><a href="../">&larr; Back to the website</a><span aria-hidden="true"> · </span><a href="../tend/">Accounts</a></p><p class="crumbs"><a href="#">Arbor Planning Library</a> · <button class="ov-open" type="button">part ' + num + " of 19</button></p>" +
       '<h1 data-edit="name">' + esc(d.name) + '</h1><p class="blurb" data-edit="blurb">' + inline(d.blurb || "") + "</p></header>" +
       '<div class="layout' + (editing ? " editing" : "") + (stamping ? " stamping" : "") + '"><main class="content panel">' +
       (d.intro ? '<div class="page-intro">' + d.intro + "</div>" : "") +

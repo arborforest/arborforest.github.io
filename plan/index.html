@@ -185,6 +185,8 @@ body.stamping ul.checks > li[data-id], body.stamping section.sec > h2 { cursor: 
 body.stamping ul.checks > li[data-id]:hover, body.stamping section.sec > h2:hover { background: var(--green-soft); border-radius: 6px; }
 @media (prefers-reduced-motion: reduce) { .tag { transform: none; } }
 .pg-status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.moved { margin: 14px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--note-bg); color: var(--note-fg); border: 1px solid var(--note-edge); max-width: 68ch; }
+.moved a { color: inherit; font-weight: 600; }
 /* Overhead view (owner 18 Nov 2026) */
 .ov-open { all: unset; cursor: pointer; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .ov-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
@@ -251,6 +253,10 @@ a.part .pg-bar { margin: 4px 0 2px; height: 5px; max-width: 520px; }
 .stamping ul.checks > li[data-id], .stamping section.sec > h2 { cursor: copy; }
 .stamping ul.checks > li[data-id]:hover, .stamping section.sec > h2:hover { background: var(--green-soft); border-radius: 6px; }
 @media (max-width: 600px) { .pg-status { white-space: normal; } }
+.backrow { margin: 0 0 10px; font-size: .95rem; }
+.backrow a { color: var(--muted); text-decoration: none; }
+.backrow a:hover { color: var(--fg); text-decoration: underline; }
+.backrow span { color: var(--line); }
 </style>
 </head>
 <body>
