@@ -106,12 +106,12 @@
     var fbNew = d ? d.feedback.filter(function (f) { return f.status === "new"; }).length : 0;
     var wlNew = d && d.waitlist ? d.waitlist.filter(function (w) { return w.status === "new"; }).length : 0;
     var tabs = [["people", "People" + (d ? " (" + d.people.length + ")" : "")], ["feedback", "Feedback" + (fbNew ? " (" + fbNew + " new)" : "")],
-                ["waitlist", "Waitlist" + (d && d.waitlist ? " (" + d.waitlist.length + (wlNew ? ", " + wlNew + " new" : "") + ")" : "")], ["growth", "Growth"], ["learning", "Learning"], ["ideas", "Ideas" + (d && d.ideas ? " (" + d.ideas.filter(function (x) { return !x.done; }).length + ")" : "")]];
+                ["waitlist", "Waitlist" + (d && d.waitlist ? " (" + d.waitlist.length + ")" : "")], ["growth", "Growth"], ["learning", "Learning"], ["ideas", "Ideas" + (d && d.ideas ? " (" + d.ideas.filter(function (x) { return !x.done; }).length + ")" : "")]];
     var html = '<div class="top"><h1>Accounts</h1><div class="fresh">' +
       (state.loadedAt ? "Updated " + time(state.loadedAt) : "Loading…") +
-      ' <button class="btn" id="refresh" type="button">Refresh</button></div></div>' +
+      ' <button class="link" id="refresh" type="button">Refresh</button></div></div>' +
       (state.error ? '<p class="bad">' + esc(state.error) + "</p>" : "") +
-      '<div class="tabs">' + tabs.map(function (t) { return '<button class="btn' + (state.tab === t[0] && !state.person ? " on" : "") + '" data-tab="' + t[0] + '" type="button">' + t[1] + "</button>"; }).join("") + "</div>";
+      '<div class="tabs">' + tabs.map(function (t) { return '<button class="tab' + (state.tab === t[0] && !state.person ? " on" : "") + '" data-tab="' + t[0] + '" type="button">' + t[1] + "</button>"; }).join("") + "</div>";
     app.innerHTML = html + '<div id="body"></div>';
     app.querySelector("#refresh").onclick = function () { this.textContent = "Refreshing…"; load(); };
     app.querySelectorAll("[data-tab]").forEach(function (b) {
@@ -356,38 +356,52 @@
 
   // ---------- Waitlist (the website's "Join the waitlist" form, owner 15 Nov 2026) ----------
   function waitlistPage(body) {
-    var all = state.data.waitlist || [], f = state.wlFilter || "all";
-    var counts = { new: 0, seen: 0, done: 0 }; all.forEach(function (x) { counts[x.status]++; });
-    var tally = {}; all.forEach(function (x) { x.devices.forEach(function (d) { tally[d] = (tally[d] || 0) + 1; }); });
-    var list = all.filter(function (x) { return f === "all" || (f === "questions" ? x.note : x.status === f); });
-    var chips = [["all", "Everyone (" + all.length + ")"], ["new", "New (" + counts.new + ")"], ["questions", "With a question (" + all.filter(function (x) { return x.note; }).length + ")"], ["done", "Done (" + counts.done + ")"]];
-    body.innerHTML = '<div class="tools"><div class="chips">' + chips.map(function (c) { return '<button class="btn' + (f === c[0] ? " on" : "") + '" data-wf="' + c[0] + '" type="button">' + c[1] + "</button>"; }).join("") +
-      '</div><button class="btn" id="wlcopy" type="button">Copy every email</button></div>' +
-      (Object.keys(tally).length ? '<p class="sub" style="margin:0 0 12px">Devices: ' + Object.keys(tally).sort(function (a, b) { return tally[b] - tally[a]; }).map(function (k) { return esc(k) + " " + tally[k]; }).join(" · ") + "</p>" : "") +
-      (list.length ? list.map(function (x) {
-        return '<div class="card" style="margin-bottom:10px"><p class="sub" style="margin:0 0 6px"><b>' + esc(x.firstName + " " + x.lastName) + "</b> · " + esc(x.email) + " · " + date(x.updatedAt) + " " + time(x.updatedAt) +
-          (x.language === "es" ? " · Español" : "") + " · <i>" + x.status + "</i></p>" +
-          '<p style="margin:0">' + x.devices.map(esc).join(", ") + "</p>" +
-          (x.note ? '<p style="margin:8px 0 0;white-space:pre-wrap">' + esc(x.note) + "</p>" : "") +
-          '<p style="margin:10px 0 0">' + ["new", "seen", "done"].filter(function (st) { return st !== x.status; }).map(function (st) {
-            return '<button class="btn" data-wlid="' + x.id + '" data-st="' + st + '" type="button">Mark ' + st + "</button>"; }).join(" ") +
-          ' <button class="btn" data-wlrm="' + x.id + '" type="button">Remove</button></p></div>';
-      }).join("") : '<p class="empty">Nobody here yet.</p>');
-    body.querySelectorAll("[data-wf]").forEach(function (b) { b.onclick = function () { state.wlFilter = b.dataset.wf; waitlistPage(body); }; });
+    // Owner 18 Nov 2026 (chose A, the table): one line per person; one "Emailed" tick instead of New / Seen / Done
+    // (ticked = status "done", unticked = "new"); Remove sits behind the row's ⋯.
+    var all = state.data.waitlist || [];
+    var tally = {}; all.forEach(function (x) { x.devices.forEach(function (d) { d = d === "MacBook" || d === "iMac" ? "Mac" : d; tally[d] = (tally[d] || 0) + 1; }); });
+    var emailed = all.filter(function (x) { return x.status === "done"; }).length, notes = all.filter(function (x) { return x.note; }).length;
+    var summary = [all.length + (all.length === 1 ? " person" : " people")]
+      .concat(Object.keys(tally).length ? [Object.keys(tally).sort(function (a, b) { return tally[b] - tally[a]; }).map(function (k) { return tally[k] + " " + esc(k); }).join(", ")] : [])
+      .concat(notes ? [notes + (notes === 1 ? " left a note" : " left a note")] : []).concat([emailed + " emailed"]);
+    body.innerHTML = '<div class="sumline"><span>' + summary.join(" · ") + '</span><button class="link" id="wlcopy" type="button">Copy all emails</button></div>' +
+      (all.length ? '<div class="wrap"><table class="wl"><thead><tr><th>Name</th><th>Email</th><th>Device</th><th>Joined</th><th class="c">Emailed</th><th></th></tr></thead><tbody>' +
+        all.map(function (x) {
+          return '<tr><td class="n">' + esc(x.firstName + " " + x.lastName) + (x.language === "es" ? ' <span class="muted">· Español</span>' : "") +
+            (x.note ? '<div class="note">“' + esc(x.note) + '”</div>' : "") + "</td>" +
+            '<td class="e"><a href="mailto:' + esc(x.email) + '">' + esc(x.email) + "</a></td>" +
+            '<td class="d">' + x.devices.map(function (d) { return esc(d === "MacBook" || d === "iMac" ? "Mac" : d); }).join(", ") + '<span class="phone"> · ' + date(x.at || x.updatedAt) + "</span></td>" +
+            '<td class="j muted">' + date(x.at || x.updatedAt) + "</td>" +
+            '<td class="c t"><input type="checkbox" class="tick" data-wlid="' + x.id + '"' + (x.status === "done" ? " checked" : "") + ' aria-label="Emailed ' + esc(x.firstName) + '"></td>' +
+            '<td class="c m"><button class="more" data-wlmore="' + x.id + '" type="button" aria-label="More for ' + esc(x.firstName) + '">⋯</button></td></tr>';
+        }).join("") + "</tbody></table></div>" : '<p class="empty">Nobody here yet.</p>');
     body.querySelector("#wlcopy").onclick = function () {
       var btn = this, text = all.map(function (x) { return x.email; }).join(", ");
-      function done(m) { btn.textContent = m; setTimeout(function () { btn.textContent = "Copy every email"; }, 2000); }
+      function done(m) { btn.textContent = m; setTimeout(function () { btn.textContent = "Copy all emails"; }, 2000); }
       try { navigator.clipboard.writeText(text).then(function () { done("Copied " + all.length); }, function () { done("Couldn't copy"); }); } catch (e) { done("Couldn't copy"); }
     };
-    wireWaitlistRemove(body);
-    body.querySelectorAll("[data-wlid]").forEach(function (b) {
-      b.onclick = function () {
-        b.disabled = true;
-        post("/accounts/waitlist-status", { id: b.dataset.wlid, status: b.dataset.st }).then(function (r) {
-          if (!r.ok) { b.disabled = false; return; }
-          state.data.waitlist.forEach(function (x) { if (x.id === b.dataset.wlid) x.status = b.dataset.st; });
-          render();
-        });
+    body.querySelectorAll("[data-wlmore]").forEach(function (b) {
+      b.onclick = function (e) {
+        e.stopPropagation();
+        var open = b.parentNode.querySelector(".menu"); document.querySelectorAll(".menu").forEach(function (m) { m.remove(); });
+        if (open) return;
+        // Fixed to the button, so the table's scroll box doesn't cut it off.
+        var r = b.getBoundingClientRect(), m = document.createElement("div"); m.className = "menu";
+        m.style.position = "fixed"; m.style.top = (r.bottom + 4) + "px"; m.style.right = Math.max(8, innerWidth - r.right) + "px"; m.style.minWidth = "200px";
+        m.innerHTML = '<button class="link danger" data-wlrm="' + b.dataset.wlmore + '" type="button">Remove from the waitlist…</button>';
+        b.parentNode.appendChild(m); wireWaitlistRemove(m);
+      };
+    });
+    if (!state.wlMenuWired) { state.wlMenuWired = true; function shut() { document.querySelectorAll(".menu").forEach(function (m) { if (m.querySelector("[data-wlrm]")) m.remove(); }); } document.addEventListener("click", shut); addEventListener("scroll", shut, true); }
+    body.querySelectorAll("input[data-wlid]").forEach(function (c) {
+      c.onchange = function () {
+        var st = c.checked ? "done" : "new"; c.disabled = true;
+        post("/accounts/waitlist-status", { id: c.dataset.wlid, status: st }).then(function (r) {
+          c.disabled = false;
+          if (!r.ok) { c.checked = !c.checked; return; }
+          state.data.waitlist.forEach(function (x) { if (x.id === c.dataset.wlid) x.status = st; });
+          waitlistPage(body);
+        }, function () { c.disabled = false; c.checked = !c.checked; });
       };
     });
   }
