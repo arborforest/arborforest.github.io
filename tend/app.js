@@ -1,7 +1,7 @@
 // The owner's Accounts dashboard (served at /accounts/app.js, only after her passcode). Owner 8 Nov 2026:
 // works like a simple CRM: People (search, quick filters, columns she can hide and reorder, sort, click a person
-// for their page with devices, activity, learning, feedback and her private notes), Feedback (inbox, New / Seen /
-// Done), Growth and Learning charts. "Updated …" and Refresh show how fresh it is; it also refreshes every 5 minutes.
+// for their page with devices, activity, learning, feedback and her private notes), Feedback (one table,
+// a Handled tick), Growth and Learning charts. "Updated …" and Refresh show how fresh it is; it also refreshes every 5 minutes.
 (function () {
   "use strict";
   var app = document.getElementById("app");
@@ -66,7 +66,7 @@
       case "mac": case "ipad": case "iphone": return ago(p[key]);
       case "filedPct": case "placesPct": return pct(p[key]);
       case "lessons": return num(p.lessons);
-      case "feedbackCount": return p.feedbackCount ? String(p.feedbackCount) + (p.feedbackNew ? ' <span class="muted">(' + p.feedbackNew + " new)</span>" : "") : DASH;
+      case "feedbackCount": return p.feedbackCount ? String(p.feedbackCount) + (p.feedbackNew ? ' <span class="muted">(' + p.feedbackNew + " not handled)</span>" : "") : DASH;
       case "createdAt": return date(p.createdAt);
       case "lastCheckIn": return ago(p.lastCheckIn);
     }
@@ -91,10 +91,10 @@
     }).then(function (d) {
       d.people.forEach(function (p) {
         var mine = d.feedback.filter(function (f) { return f.person === p.id; });
-        p.feedbackCount = mine.length; p.feedbackNew = mine.filter(function (f) { return f.status === "new"; }).length;
+        p.feedbackCount = mine.length; p.feedbackNew = mine.filter(function (f) { return f.status !== "done"; }).length;
       });
       state.data = d; state.loadedAt = new Date(); render();
-    }).catch(function (e) { state.error = "Couldn't reach Arbor's cloud. Try Refresh."; render(); });
+    }).catch(function (e) { if (window.console) console.error(e); state.error = "Couldn't reach Arbor's cloud. Try Refresh."; render(); });
   }
   function post(path, body) {
     return fetch(API + path.replace("/accounts/", "/v1/admin/"), { method: "POST", headers: { "content-type": "application/json", authorization: "Owner " + PASS }, body: JSON.stringify(body) });
@@ -105,7 +105,7 @@
     var d = state.data;
     var fbNew = d ? d.feedback.filter(function (f) { return f.status === "new"; }).length : 0;
     var wlNew = d && d.waitlist ? d.waitlist.filter(function (w) { return w.status === "new"; }).length : 0;
-    var tabs = [["people", "People" + (d ? " (" + d.people.length + ")" : "")], ["feedback", "Feedback" + (fbNew ? " (" + fbNew + " new)" : "")],
+    var tabs = [["people", "People" + (d ? " (" + d.people.length + ")" : "")], ["feedback", "Feedback" + (d ? " (" + d.feedback.length + ")" : "")],
                 ["waitlist", "Waitlist" + (d && d.waitlist ? " (" + d.waitlist.length + ")" : "")], ["growth", "Growth"], ["learning", "Learning"], ["ideas", "Ideas" + (d && d.ideas ? " (" + d.ideas.filter(function (x) { return !x.done; }).length + ")" : "")]];
     var html = '<div class="top"><h1>Accounts</h1><div class="fresh">' +
       (state.loadedAt ? "Updated " + time(state.loadedAt) : "Loading…") +
@@ -149,23 +149,23 @@
     list.sort(function (a, b) { var x = sortValue(a, s.key), y = sortValue(b, s.key); return (x < y ? -1 : x > y ? 1 : 0) * s.dir; });
     var active = d.people.filter(function (p) { var lu = lastUsed(p); return lu && Date.parse(lu) > week; }).length;
     var plus = d.people.filter(function (p) { return p.plan === "Plus"; }).length;
-    var chips = [["all", "Everyone"], ["active", "Used this week"], ["quiet", "Quiet 2+ weeks"], ["plus", "Plus"], ["basic", "Basic"], ["feedback", "New feedback"]];
+    var chips = [["all", "Everyone"], ["active", "Used this week"], ["quiet", "Quiet 2+ weeks"], ["plus", "Plus"], ["basic", "Basic"], ["feedback", "Feedback not handled"]];
     var cols = state.cols.order.filter(function (k) { return state.cols.hidden.indexOf(k) < 0; });
     var label = function (k) { return COLUMNS.filter(function (c) { return c.key === k; })[0].label; };
-    body.innerHTML = '<div class="strip"><div><b>' + d.people.length + "</b> " + (d.people.length === 1 ? "person" : "people") + "</div><div><b>" + active +
-      "</b> used Arbor this week</div><div><b>" + plus + "</b> on Plus</div></div>" +
+    // Owner 18 Nov 2026: same compact look as the waitlist (summary line, small controls, one line per person).
+    body.innerHTML = '<div class="sumline"><span>' + d.people.length + (d.people.length === 1 ? " person" : " people") + " · " + active + " used Arbor this week · " + plus + " on Plus</span></div>" +
       '<div class="tools"><input id="q" type="search" placeholder="Search name or email" value="' + esc(state.search) + '">' +
-      '<div class="chips">' + chips.map(function (c) { return '<button class="btn' + (state.filter === c[0] ? " on" : "") + '" data-f="' + c[0] + '" type="button">' + c[1] + "</button>"; }).join("") +
-      '</div><span style="flex:1"></span><span style="position:relative"><button class="btn" id="colbtn" type="button">Columns</button></span></div>' +
-      '<div class="wrap"><table><thead><tr>' + cols.map(function (k) {
+      '<label class="muted" style="font-size:.9rem">Show <select id="pf" class="sel">' + chips.map(function (c) { return '<option value="' + c[0] + '"' + (state.filter === c[0] ? " selected" : "") + ">" + c[1] + "</option>"; }).join("") + "</select></label>" +
+      '<span style="flex:1"></span><span style="position:relative"><button class="link" id="colbtn" type="button">Columns</button></span></div>' +
+      '<div class="wrap"><table class="ppl"><thead><tr>' + cols.map(function (k) {
         return '<th class="sort" data-k="' + k + '">' + label(k) + (s.key === k ? (s.dir > 0 ? " ↑" : " ↓") : "") + "</th>";
       }).join("") + "</tr></thead><tbody>" + (list.length ? list.map(function (p) {
-        return '<tr data-id="' + p.id + '" style="cursor:pointer">' + cols.map(function (k) { return "<td>" + cell(p, k) + "</td>"; }).join("") + "</tr>";
+        return '<tr data-id="' + p.id + '" style="cursor:pointer">' + cols.map(function (k) { return '<td data-l="' + label(k) + '">' + cell(p, k) + "</td>"; }).join("") + "</tr>";
       }).join("") : '<tr><td colspan="' + cols.length + '" class="muted">Nobody here yet.</td></tr>') + "</tbody></table></div>" +
       '<p class="foot">Click a person to open their page. Pictures, picture names, Willows and Branches never appear here: Arbor\'s cloud only holds pictures scrambled.</p>';
     var q = body.querySelector("#q");
     q.oninput = function () { state.search = q.value; var pos = q.selectionStart; peoplePage(body); var n = body.querySelector("#q"); n.focus(); n.setSelectionRange(pos, pos); };
-    body.querySelectorAll("[data-f]").forEach(function (b) { b.onclick = function () { state.filter = b.dataset.f; peoplePage(body); }; });
+    body.querySelector("#pf").onchange = function () { state.filter = this.value; peoplePage(body); };
     body.querySelectorAll("th[data-k]").forEach(function (th) {
       th.onclick = function () { var k = th.dataset.k; state.sort = { key: k, dir: state.sort.key === k ? -state.sort.dir : (k === "name" || k === "email" ? 1 : -1) }; peoplePage(body); };
     });
@@ -208,7 +208,7 @@
     var d = state.data, mine = d.days.filter(function (x) { return x.id === p.id; });
     var fb = d.feedback.filter(function (f) { return f.person === p.id; });
     var devices = [["Mac", p.mac], ["iPad", p.ipad], ["iPhone", p.iphone]];
-    body.innerHTML = '<p><button class="btn" id="back" type="button">← All people</button></p>' +
+    body.innerHTML = '<p><button class="link" id="back" type="button">← All people</button></p>' +
       '<h2 style="margin:6px 0 2px">' + nameOf(p) + '</h2><p class="lead">' + (p.email ? esc(p.email) : "No email") +
       (p.hiddenEmail ? " · Apple Hide My Email (Apple forwards mail to them)" : "") + " · Account " + shortID(p.id) + " · Joined " + date(p.createdAt) + "</p>" +
       '<div class="grid">' +
@@ -254,44 +254,39 @@
   function row(k, v) { return '<tr><td class="muted" style="width:45%">' + k + "</td><td>" + v + "</td></tr>"; }
 
   // ---------- Feedback ----------
+  // Owner 18 Nov 2026: same as the waitlist: one line each, one "Handled" tick instead of New / Seen / Done
+  // (ticked = status "done", unticked = "new"), newest first.
   function feedbackPage(body) {
-    var d = state.data, f = state.fbFilter;
-    var list = d.feedback.filter(function (x) { return f === "all" || x.status === f; });
-    var counts = { new: 0, seen: 0, done: 0 }; d.feedback.forEach(function (x) { counts[x.status]++; });
-    var chips = [["new", "New (" + counts.new + ")"], ["seen", "Seen (" + counts.seen + ")"], ["done", "Done (" + counts.done + ")"], ["all", "All (" + d.feedback.length + ")"]];
-    body.innerHTML = '<div class="tools"><div class="chips">' + chips.map(function (c) { return '<button class="btn' + (f === c[0] ? " on" : "") + '" data-ff="' + c[0] + '" type="button">' + c[1] + "</button>"; }).join("") +
-      '</div></div><div id="fblist"></div>';
-    body.querySelectorAll("[data-ff]").forEach(function (b) { b.onclick = function () { state.fbFilter = b.dataset.ff; feedbackPage(body); }; });
-    feedbackList(body.querySelector("#fblist"), list, true);
+    var d = state.data, bugs = d.feedback.filter(function (x) { return x.kind === "bug"; }).length, handled = d.feedback.filter(function (x) { return x.status === "done"; }).length;
+    body.innerHTML = '<div class="sumline"><span>' + d.feedback.length + (d.feedback.length === 1 ? " message" : " messages") + " · " + bugs + (bugs === 1 ? " bug report" : " bug reports") + " · " + handled + " handled</span></div><div id=\"fblist\"></div>";
+    feedbackList(body.querySelector("#fblist"), d.feedback, true);
   }
   function feedbackList(box, list, showPerson) {
     if (!list.length) { box.innerHTML = '<p class="empty">Nothing here.</p>'; return; }
     var people = {}; state.data.people.forEach(function (p) { people[p.id] = p; });
-    box.innerHTML = list.map(function (x) {
-      var p = people[x.person];
-      return '<div class="card" style="margin-bottom:10px"><p class="sub" style="margin:0 0 6px"><b>' + (x.kind === "bug" ? "Bug report" : "Feedback") + "</b> · " +
-        (showPerson && p ? '<a href="#" data-person="' + p.id + '">' + nameOf(p) + "</a> · " : "") + date(x.at) + " " + time(x.at) +
-        (x.device ? " · " + esc({ mac: "Mac", ipad: "iPad", iphone: "iPhone" }[x.device] || x.device) : "") + (x.appVersion ? " · Arbor " + esc(x.appVersion) : "") +
-        (x.system ? " · " + esc(x.system) : "") + " · <i>" + x.status + "</i></p>" +
-        '<p style="margin:0;white-space:pre-wrap">' + esc(x.text) + "</p>" +
-        (x.isVideo ? '<p style="margin:10px 0 0"><video controls preload="metadata" src="' + API + '/v1/admin/feedback-picture/' + x.id + '?t=' + encodeURIComponent(PASS) + '" style="max-width:360px;max-height:240px;border-radius:8px;border:1px solid var(--line)"></video><br>' +
-          '<a href="' + API + '/v1/admin/feedback-picture/' + x.id + '?t=' + encodeURIComponent(PASS) + '" target="_blank" rel="noopener">Open the video they attached</a></p>' :
-        x.hasPicture ? '<p style="margin:10px 0 0"><a href="' + API + '/v1/admin/feedback-picture/' + x.id + '?t=' + encodeURIComponent(PASS) + '" target="_blank" rel="noopener">' +
-          '<img src="' + API + '/v1/admin/feedback-picture/' + x.id + '?t=' + encodeURIComponent(PASS) + '" alt="Picture they attached" style="max-width:260px;max-height:200px;border-radius:8px;border:1px solid var(--line)"></a></p>' : "") +
-        '<p style="margin:10px 0 0">' + ["new", "seen", "done"].filter(function (s) { return s !== x.status; }).map(function (s) {
-          return '<button class="btn" data-fbid="' + x.id + '" data-st="' + s + '" type="button">Mark ' + (s === "new" ? "new" : s) + "</button>";
-        }).join(" ") + "</p></div>";
-    }).join("");
+    box.innerHTML = '<div class="wrap"><table class="wl fb"><thead><tr>' + (showPerson ? "<th>From</th>" : "") + '<th>What they said</th><th>Device</th><th>Sent</th><th class="c">Handled</th></tr></thead><tbody>' +
+      list.map(function (x) {
+        var p = people[x.person];
+        var media = x.isVideo ? '<a href="' + API + '/v1/admin/feedback-picture/' + x.id + '?t=' + encodeURIComponent(PASS) + '" target="_blank" rel="noopener">Video they attached</a>' :
+          x.hasPicture ? '<a href="' + API + '/v1/admin/feedback-picture/' + x.id + '?t=' + encodeURIComponent(PASS) + '" target="_blank" rel="noopener"><img class="thumb" src="' + API + '/v1/admin/feedback-picture/' + x.id + '?t=' + encodeURIComponent(PASS) + '" alt="Picture they attached"></a>' : "";
+        return "<tr>" + (showPerson ? '<td class="n">' + (p ? '<a href="#" data-person="' + p.id + '">' + nameOf(p) + "</a>" : '<span class="muted">Someone</span>') + "</td>" : "") +
+          '<td class="' + (showPerson ? "e" : "n") + ' txt">' + (x.kind === "bug" ? '<span class="tag">Bug</span> ' : "") + esc(x.text) + (media ? '<div style="margin-top:6px">' + media + "</div>" : "") + "</td>" +
+          '<td class="d">' + (x.device ? esc({ mac: "Mac", ipad: "iPad", iphone: "iPhone" }[x.device] || x.device) : "") +
+            (x.appVersion ? '<span class="muted"> · Arbor ' + esc(x.appVersion) + "</span>" : "") + '<span class="phone"> · ' + date(x.at) + "</span></td>" +
+          '<td class="j muted">' + date(x.at) + " " + time(x.at) + "</td>" +
+          '<td class="c t"><input type="checkbox" class="tick" data-fbid="' + x.id + '"' + (x.status === "done" ? " checked" : "") + ' aria-label="Handled"></td></tr>';
+      }).join("") + "</tbody></table></div>";
     box.querySelectorAll("[data-person]").forEach(function (a) { a.onclick = function (e) { e.preventDefault(); state.person = a.dataset.person; render(); window.scrollTo(0, 0); }; });
-    box.querySelectorAll("[data-fbid]").forEach(function (b) {
-      b.onclick = function () {
-        b.disabled = true;
-        post("/accounts/feedback-status", { id: b.dataset.fbid, status: b.dataset.st }).then(function (r) {
-          if (!r.ok) { b.disabled = false; return; }
-          state.data.feedback.forEach(function (x) { if (x.id === b.dataset.fbid) x.status = b.dataset.st; });
-          state.data.people.forEach(function (p) { var m = state.data.feedback.filter(function (f) { return f.person === p.id; }); p.feedbackNew = m.filter(function (f) { return f.status === "new"; }).length; });
+    box.querySelectorAll("input[data-fbid]").forEach(function (c) {
+      c.onchange = function () {
+        var st = c.checked ? "done" : "new"; c.disabled = true;
+        post("/accounts/feedback-status", { id: c.dataset.fbid, status: st }).then(function (r) {
+          c.disabled = false;
+          if (!r.ok) { c.checked = !c.checked; return; }
+          state.data.feedback.forEach(function (x) { if (x.id === c.dataset.fbid) x.status = st; });
+          state.data.people.forEach(function (p) { var m = state.data.feedback.filter(function (f) { return f.person === p.id; }); p.feedbackNew = m.filter(function (f) { return f.status !== "done"; }).length; });
           render();
-        });
+        }, function () { c.disabled = false; c.checked = !c.checked; });
       };
     });
   }
