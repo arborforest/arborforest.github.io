@@ -1,2 +1,4 @@
 User-agent: *
 Disallow: /tend/
+
+Sitemap: https://arborcurator.com/sitemap.xml

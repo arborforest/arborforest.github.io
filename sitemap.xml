@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://arborcurator.com/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arborcurator.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://arborcurator.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arborcurator.com/"/>
+  </url>
+  <url>
+    <loc>https://arborcurator.com/es/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arborcurator.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://arborcurator.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arborcurator.com/"/>
+  </url>
+  <url>
+    <loc>https://arborcurator.com/support/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arborcurator.com/support/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://arborcurator.com/es/support/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arborcurator.com/support/"/>
+  </url>
+  <url>
+    <loc>https://arborcurator.com/es/support/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arborcurator.com/support/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://arborcurator.com/es/support/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arborcurator.com/support/"/>
+  </url>
+  <url>
+    <loc>https://arborcurator.com/privacy/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arborcurator.com/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://arborcurator.com/es/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arborcurator.com/privacy/"/>
+  </url>
+  <url>
+    <loc>https://arborcurator.com/es/privacy/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arborcurator.com/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://arborcurator.com/es/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arborcurator.com/privacy/"/>
+  </url>
+  <url>
+    <loc>https://arborcurator.com/terms/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arborcurator.com/terms/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://arborcurator.com/es/terms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arborcurator.com/terms/"/>
+  </url>
+  <url>
+    <loc>https://arborcurator.com/es/terms/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://arborcurator.com/terms/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://arborcurator.com/es/terms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arborcurator.com/terms/"/>
+  </url>
+</urlset>
