@@ -6,8 +6,8 @@
 <title>Arbor: tu curadora de fotos para iPhone, iPad y Mac</title>
 <meta name="description" content="Arbor ordena tus fotos en iPhone, iPad y Mac, capturas incluidas. Lee cada una, le pone un nombre que reconocerás y la archiva donde la volverás a encontrar.">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#151614" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f2e5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#21241a" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="Arbor: tu curadora de fotos">
 <meta property="og:description" content="Agrega tus fotos. Arbor las ordena, les pone nombre y las archiva. Para iPhone, iPad y Mac.">
 <meta property="og:image" content="https://arborcurator.com/img/share.png">
@@ -27,6 +27,10 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#141513; --fg:#ecebe7; --muted:#a39e96; --line:#34352f; --green:#8fc59f; --gold:#e0ad5e; --on:#141513; color-scheme:dark } }
 :root[data-theme="dark"] { --bg:#141513; --fg:#ecebe7; --muted:#a39e96; --line:#34352f; --green:#8fc59f; --gold:#e0ad5e; --on:#141513; color-scheme:dark }
 body { background:var(--bg); color:var(--fg); margin:0; }
+/* The strip behind the phone's clock takes the color of the top of the page (owner 17 Nov 2026: no black band above the header). */
+html { background:#f3f2e5; }
+@media (prefers-color-scheme: dark) { html:not([data-theme="light"]) { background:#21241a; } }
+html[data-theme="dark"] { background:#21241a; }
 button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
 .pill { position:fixed; right:max(16px, env(safe-area-inset-right, 0px)); bottom:calc(16px + env(safe-area-inset-bottom, 0px)); z-index:20; display:flex; flex-wrap:wrap; gap:8px; padding:8px; border-radius:14px; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(10px); border:1px solid var(--line); box-shadow:0 8px 24px rgba(0,0,0,.12); max-width:calc(100vw - 32px); font-family:var(--apple); }
 .seg { display:flex; flex-wrap:wrap; gap:4px; }
@@ -61,6 +65,8 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-o
 .wash i:nth-child(1) { background:var(--s-wash1); left:-12%; top:-30%; }
 .wash i:nth-child(2) { background:var(--s-wash2); right:-14%; top:-24%; }
 .wash i:nth-child(3) { background:var(--s-wash1); left:30%; top:20%; width:44vmax; height:44vmax; opacity:.6; }
+.top::after { content:""; position:absolute; inset:0 0 auto 0; height:140px; z-index:-1; pointer-events:none; background:linear-gradient(var(--s-top), transparent); }
+.site { --s-top:#f3f2e5; } .site.dark { --s-top:#21241a; }
 .wash::after { content:""; position:absolute; inset:auto 0 0 0; height:40%; background:linear-gradient(transparent, var(--s-bg)); }
 .hero { text-align:center; display:flex; flex-direction:column; align-items:center; gap:14px; padding-block:46px 10px; }
 .for { font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; font-weight:600; color:var(--s-mark); }
