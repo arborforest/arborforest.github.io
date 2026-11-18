@@ -43,10 +43,10 @@ table.wl .note{color:var(--muted);font-style:italic;font-size:.88rem;white-space
 .menu .row{display:flex;align-items:center;gap:8px;padding:4px 0} .menu .row span{flex:1}
 .menu .mv{border:1px solid var(--line);background:none;color:var(--fg);border-radius:6px;width:28px;height:26px;cursor:pointer;padding:0}
 th.sort{cursor:pointer} th.sort:hover{color:var(--accent)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
-.card{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:14px 16px} .card h3{margin:0 0 2px;font-size:1.05rem} .card .sub{color:var(--muted);font-size:.88rem;margin:0 0 8px}
+/* Owner 18 Nov 2026: no grids, no boxes. Sections stack, divided by a thin line. */ .grid{display:block}
+.card{border:0;border-bottom:1px solid var(--line);background:none;border-radius:0;padding:16px 0;margin:0!important} .card > div[id]{max-width:520px} .card h3{margin:0 0 2px;font-size:1.05rem} .card .sub{color:var(--muted);font-size:.88rem;margin:0 0 8px}
 .tip{position:fixed;pointer-events:none;background:var(--fg);color:var(--bg);font-size:.85rem;padding:4px 8px;border-radius:6px;display:none;z-index:9}
-svg text{fill:var(--muted);font:12px Georgia,serif} .empty{color:var(--muted);font-size:.92rem;padding:30px 0;text-align:center}</style>
+svg text{fill:var(--muted);font:12px Georgia,serif} .empty{color:var(--muted);font-size:.92rem;padding:6px 0;text-align:left;margin:0}</style>
 </head>
 <body><main>
 <p style="margin:0 0 6px"><a href="../" style="color:inherit;opacity:.7;text-decoration:none;font-size:.95rem">&larr; Back to the website</a><span style="opacity:.4"> &middot; </span><a href="../plan/" style="color:inherit;opacity:.7;text-decoration:none;font-size:.95rem">Plan &rarr;</a></p>

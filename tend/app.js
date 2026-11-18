@@ -475,7 +475,7 @@
     for (var i = 0; i <= 4; i++) {
       var y = PAD.t + ih - (ih * i) / 4, v = (m * i) / 4;
       g += '<line x1="' + PAD.l + '" x2="' + (W - PAD.r) + '" y1="' + y + '" y2="' + y + '" stroke="currentColor" stroke-opacity="' + (i ? 0.08 : 0.25) + '"/>' +
-        '<text x="' + (PAD.l - 6) + '" y="' + (y + 4) + '" text-anchor="end">' + (Number.isInteger(v) ? v : v.toFixed(1)) + (unit || "") + "</text>";
+        (Number.isInteger(v) ? '<text x="' + (PAD.l - 6) + '" y="' + (y + 4) + '" text-anchor="end">' + v + (unit || "") + "</text>" : "");   // counts never show "0.3 people"
     }
     return g;
   }
