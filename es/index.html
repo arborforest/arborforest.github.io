@@ -28,9 +28,11 @@
 :root[data-theme="dark"] { --bg:#141513; --fg:#ecebe7; --muted:#a39e96; --line:#34352f; --green:#8fc59f; --gold:#e0ad5e; --on:#141513; color-scheme:dark }
 body { background:var(--bg); color:var(--fg); margin:0; }
 /* The strip behind the phone's clock takes the color of the top of the page (owner 17 Nov 2026: no black band above the header). */
-html { background:#f3f2e5; }
-@media (prefers-color-scheme: dark) { html:not([data-theme="light"]) { background:#21241a; } }
-html[data-theme="dark"] { background:#21241a; }
+html, body { background:#f3f2e5; }
+@media (prefers-color-scheme: dark) { html:not([data-theme="light"]), html:not([data-theme="light"]) body { background:#21241a; } }
+html[data-theme="dark"], html[data-theme="dark"] body { background:#21241a; }
+/* Safari 26 colors the clock strip from a fixed element touching the top edge, so keep a 1px one in the header color. */
+body::before { content:""; position:fixed; top:0; left:0; right:0; height:1px; background:inherit; z-index:30; pointer-events:none; }
 button:focus-visible, a:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
 .pill { position:fixed; right:max(16px, env(safe-area-inset-right, 0px)); bottom:calc(16px + env(safe-area-inset-bottom, 0px)); z-index:20; display:flex; flex-wrap:wrap; gap:8px; padding:8px; border-radius:14px; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(10px); border:1px solid var(--line); box-shadow:0 8px 24px rgba(0,0,0,.12); max-width:calc(100vw - 32px); font-family:var(--apple); }
 .seg { display:flex; flex-wrap:wrap; gap:4px; }
